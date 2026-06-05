@@ -13,7 +13,7 @@
 ## Tech Stack
 
 - **Backend:** Laravel 9, PHP 8.0+
-- **Frontend:** AdminLTE 4, Bootstrap, jQuery
+- **Frontend:** AdminLTE 3.1, Bootstrap 4.6, jQuery 3.6
 - **Database:** MySQL
 - **Auth:** Laravel Sanctum
 

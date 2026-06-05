@@ -114,7 +114,7 @@
 
 
                 <div class="card-body p-0">
-                    <div id="order_table_wrapper" style="padding: 10px">
+                    <div class="table-responsive ta-table-panel">
                         <table class="table table-striped table-bordered  dataTable dtr-inline" id="order_table">
                             <thead>
                                 <tr>

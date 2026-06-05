@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <title>{{ config('app.name') }}</title>
-    <meta content='width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no' name='viewport'>
+    <meta content="width=device-width, initial-scale=1" name="viewport">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <link rel="stylesheet" href="/plugins/fontawesome-free/css/all.min.css">
 
     <link href="{{ mix('css/app.css') }}" rel="stylesheet">
@@ -22,21 +23,23 @@
         <!-- Left navbar links -->
         <ul class="navbar-nav">
             <li class="nav-item">
-                <a class="nav-link" data-widget="pushmenu" href="#" role="button"><i class="fas fa-bars"></i></a>
+                <a class="nav-link" data-widget="pushmenu" href="#" role="button" aria-label="Toggle navigation">
+                    <i class="fas fa-bars" aria-hidden="true"></i>
+                </a>
             </li>
         </ul>
 
         <ul class="navbar-nav ml-auto">
             <li class="nav-item dropdown user-menu">
-                <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">
-                    <i class="fa-2x fas fa-user-circle"></i>
+                <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <i class="fa-2x fas fa-user-circle" aria-hidden="true"></i>
 
                     <span class="d-none d-md-inline">{{ Auth::user()->name }}</span>
                 </a>
                 <ul class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
                     <!-- User image -->
                     <li class="user-header bg-primary">
-                        <i class="fa-5x fas fa-user-circle"></i>
+                        <i class="fa-5x fas fa-user-circle" aria-hidden="true"></i>
                         <p>
 
                             {{ Auth::user()->name }}   {{ Auth::user()->last_name }}
@@ -64,7 +67,7 @@
 
 <!-- Content Wrapper. Contains page content -->
     <div class="content-wrapper">
-        <section class="content">
+        <section class="content" id="main-content">
             @yield('content')
         </section>
     </div>

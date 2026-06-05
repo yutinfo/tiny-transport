@@ -11,15 +11,15 @@ class CreateOrderReceivesTable extends Migration
         Schema::create('order_receives', function (Blueprint $table) {
 
         $table->id();
-        $table->unsignedInteger('order_id');
-        $table->text('parcel_code')->nullable()->default('NULL');
-		$table->text('parcel_description')->nullable()->default('NULL');
+        $table->unsignedBigInteger('order_id');
+        $table->text('parcel_code')->nullable();
+		$table->text('parcel_description')->nullable();
         $table->string('receive_name', 100)->nullable();
         $table->string('receive_mobile', 15)->nullable();
-        $table->text('receive_address')->nullable()->default('NULL');
-        $table->unsignedInteger('province_id');
-        $table->unsignedInteger('amphures_id');
-        $table->unsignedInteger('district_id');
+        $table->text('receive_address')->nullable();
+        $table->unsignedBigInteger('province_id')->nullable();
+        $table->unsignedBigInteger('amphures_id')->nullable();
+        $table->unsignedBigInteger('district_id')->nullable();
         $table->string('province_name', 100)->nullable();
         $table->string('amphures_name', 100)->nullable();
         $table->string('district_name', 100)->nullable();
@@ -35,6 +35,11 @@ class CreateOrderReceivesTable extends Migration
         $table->string('created_by', 100)->nullable();
         $table->string('updated_by', 100)->nullable();
         $table->timestamps();
+
+        $table->index('order_id');
+        $table->index('province_id');
+        $table->index('amphures_id');
+        $table->index('district_id');
 
 
         });

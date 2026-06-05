@@ -25,5 +25,6 @@ use Illuminate\Support\Facades\Route;
     Route::get('/district/{id}', [App\Http\Controllers\Api\DistrictController::class, 'show'])->name('api.district.show');
 
     Route::get('/order', [App\Http\Controllers\Api\OrderController::class, 'index'])->name('api.order.index');
-    Route::delete('/order-receive/{id}', [App\Http\Controllers\Api\OrderReciverController::class, 'destroy'])->name('api.orderreceive.delete');
+    Route::get('/contacts/suggest', [App\Http\Controllers\Api\ContactController::class, 'suggest'])->name('api.contacts.suggest');
+    Route::get('/contacts/search', [App\Http\Controllers\Api\ContactController::class, 'search'])->name('api.contacts.search');
 // });

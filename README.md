@@ -21,6 +21,31 @@ Laravel is a web application framework with expressive, elegant syntax. We belie
 
 Laravel is accessible, powerful, and provides tools required for large, robust applications.
 
+## Docker
+
+Run the application with Docker Compose:
+
+```bash
+docker compose up -d --build
+```
+
+Open the app at:
+
+```text
+http://localhost:8000
+```
+
+MySQL is exposed on the host at port `33306`.
+
+Useful commands:
+
+```bash
+docker compose exec app php artisan migrate
+docker compose exec app php artisan db:seed
+docker compose logs app
+docker compose down
+```
+
 ## Learning Laravel
 
 Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.

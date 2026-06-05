@@ -1,6 +1,1 @@
-<style>
-    .select2-container .select2-selection--single {
-        height: 36px;
-    }
-
-</style>
+{{-- Form styling is centralized in resources/sass/_modern-ui.scss. --}}

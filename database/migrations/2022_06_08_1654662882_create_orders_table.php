@@ -16,7 +16,7 @@ class CreateOrdersTable extends Migration
 
         $table->string('customer_name', 100)->nullable();
         $table->string('customer_mobile', 10)->nullable();
-        $table->text('customer_address')->nullable()->default('NULL');
+        $table->text('customer_address')->nullable();
         $table->string('province_name', 100)->nullable();
         $table->string('amphures_name', 100)->nullable();
         $table->string('district_name', 100)->nullable();

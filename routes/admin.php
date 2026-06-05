@@ -26,6 +26,15 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/update/{id}', [App\Http\Controllers\OrderController::class, 'update'])->name('ta-admin.orders.update');
 
     });
+    Route::delete('/order-receive/{id}', [App\Http\Controllers\Api\OrderReciverController::class, 'destroy'])->name('ta-admin.orderreceive.delete');
+    Route::prefix('contacts')->group(function () {
+        Route::get('/', [App\Http\Controllers\ContactController::class, 'index'])->name('ta-admin.contacts.index');
+        Route::get('/create', [App\Http\Controllers\ContactController::class, 'create'])->name('ta-admin.contacts.create');
+        Route::post('/store', [App\Http\Controllers\ContactController::class, 'store'])->name('ta-admin.contacts.store');
+        Route::get('/{id}', [App\Http\Controllers\ContactController::class, 'edit'])->name('ta-admin.contacts.edit');
+        Route::put('/update/{id}', [App\Http\Controllers\ContactController::class, 'update'])->name('ta-admin.contacts.update');
+        Route::delete('/delete/{id}', [App\Http\Controllers\ContactController::class, 'destroy'])->name('ta-admin.contacts.destroy');
+    });
     Route::prefix('dashboard')->group(function () {
 
         Route::get('/', [App\Http\Controllers\DashboardController::class, 'index'])->name('ta-admin.dashboard');

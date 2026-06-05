@@ -6,11 +6,10 @@
     <title>{{ config('app.name') }}</title>
 
     <!-- Tell the browser to be responsive to screen width -->
-    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+    <meta content="width=device-width, initial-scale=1" name="viewport">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.14.0/css/all.min.css"
-          integrity="sha512-1PKOgIY59xJ8Co8+NE6FZ+LOAZKjy+KY8iq0G4B3CyeY6wYHN3yt9PW0XpSriVlkMXe40PTKnXrLnZ9+fkDaog=="
-          crossorigin="anonymous"/>
+    <link rel="stylesheet" href="/plugins/fontawesome-free/css/all.min.css">
 
     <link href="{{ mix('css/app.css') }}" rel="stylesheet">
     <link href="/plugins/sweetalert2/sweetalert2.min.css" rel="stylesheet">

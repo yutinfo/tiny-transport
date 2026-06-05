@@ -11,7 +11,7 @@
 	}).then((result) => {
 
 		if (result.isConfirmed) {
-			let url = "{{route('api.orderreceive.delete',999999999999)}}";
+			let url = "{{route('ta-admin.orderreceive.delete',999999999999)}}";
 			url = url.replace("999999999999", id);
 			$.ajaxSetup({
 				headers: {

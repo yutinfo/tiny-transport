@@ -21,6 +21,12 @@ $role_name = Auth::user()->role_name;
         <p>รายการออเดอร์</p>
     </a>
 </li>
+<li class="nav-item">
+    <a href="{{ route('ta-admin.contacts.index') }}" class="nav-link {{ $route_name=='contacts' ? 'active' : '' }}">
+        <i class="nav-icon fas fa-address-book"></i>
+        <p>ข้อมูลผู้ส่ง/ผู้รับ</p>
+    </a>
+</li>
 @endif
 @if ($role_name=='admin')
 <li class="nav-item">

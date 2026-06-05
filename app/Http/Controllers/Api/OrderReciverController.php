@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\OrderReceive;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class OrderReciverController extends Controller
 {
@@ -81,7 +82,26 @@ class OrderReciverController extends Controller
      */
     public function destroy($id)
     {
-        return OrderReceive::destroy($id);     // Totally useless line
+        $result = DB::transaction(function () use ($id) {
+            $receiver = OrderReceive::findOrFail($id);
+            $order = $receiver->order;
 
+            $receiver->delete();
+
+            if ($order) {
+                $remainingReceivers = $order->receivers()->get();
+                $order->update([
+                    'parcel_amount' => $remainingReceivers->count(),
+                    'parcel_total' => $remainingReceivers->sum('parcel_pice'),
+                ]);
+            }
+
+            return [
+                'deleted' => true,
+                'id' => (int) $id,
+            ];
+        });
+
+        return response()->json($result);
     }
 }

@@ -1,3 +1,5 @@
+name: tiny-transport
+
 services:
   app:
     build:
@@ -5,7 +7,7 @@ services:
     ports:
       - "8000:80"
     environment:
-      APP_NAME: "TA Transport 2017"
+      APP_NAME: "Tiny Transport"
       APP_ENV: local
       APP_KEY: "base64:QOwG5GAuQ9YYGCETHUD9PtA16NlCr6K0PgKep35gf54="
       APP_DEBUG: "true"
@@ -15,7 +17,7 @@ services:
       DB_CONNECTION: mysql
       DB_HOST: mysql
       DB_PORT: 3306
-      DB_DATABASE: tatransport2017
+      DB_DATABASE: tiny_transport
       DB_USERNAME: tatransport
       DB_PASSWORD: tatransport
       CACHE_DRIVER: file
@@ -36,7 +38,7 @@ services:
     ports:
       - "33306:3306"
     environment:
-      MYSQL_DATABASE: tatransport2017
+      MYSQL_DATABASE: tiny_transport
       MYSQL_USER: tatransport
       MYSQL_PASSWORD: tatransport
       MYSQL_ROOT_PASSWORD: eggdigital

@@ -48,7 +48,7 @@ return [
             'url' => env('DATABASE_URL'),
             'host' => env('DB_HOST', '127.0.0.1'),
             'port' => env('DB_PORT', '33306'),
-            'database' => env('DB_DATABASE', 'tatransport2017'),
+            'database' => env('DB_DATABASE', 'tiny_transport'),
             'username' => env('DB_USERNAME', 'root'),
             'password' => env('DB_PASSWORD', 'eggdigital'),
             'unix_socket' => env('DB_SOCKET', ''),

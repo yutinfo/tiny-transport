@@ -130,10 +130,17 @@ npm run prod
 | GET | `/admin/trips/{trip}/cod/export/csv` | Export สรุป COD |
 | POST | `/admin/trip-items/{tripItem}/delivery-status` | อัปเดตสถานะจัดส่ง |
 | POST | `/admin/trip-items/{tripItem}/payment-status` | อัปเดตสถานะชำระเงิน |
+| GET | `/driver` | หน้ารายการรอบขนส่งของคนขับ |
+| GET | `/driver/trips/{trip}` | หน้ารายละเอียดรอบขนส่ง mobile สำหรับคนขับ |
+| POST | `/driver/trip-items/{tripItem}/delivery-status` | คนขับอัปเดตสถานะจัดส่งพัสดุของตนเอง |
+| POST | `/driver/trip-items/{tripItem}/payment-status` | คนขับบันทึกยอดเก็บเงิน COD ของตนเอง |
 | GET | `/admin/parcels/search` | ค้นหาพัสดุ |
 | GET | `/admin/parcels/code/{parcelCode}` | เปิดหน้าติดตามจากรหัสพัสดุ |
 | GET | `/admin/parcels/{orderReceive}/tracking` | ไทม์ไลน์ติดตามพัสดุ |
 | POST | `/admin/parcels/{orderReceive}/notifications` | บันทึกประวัติแจ้งเตือนลูกค้า |
+
+Role `driver` ใช้สำหรับบัญชีคนขับรถ หลังเข้าสู่ระบบจะถูกส่งไปที่ `/driver` และเห็นเฉพาะรอบขนส่งที่ `trips.driver_user_id` ตรงกับบัญชีของตนเอง
+
 
 ## API Routes
 

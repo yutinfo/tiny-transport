@@ -6,6 +6,7 @@ use App\Models\OrderReceive;
 use App\Models\Trip;
 use App\Models\TripCost;
 use App\Models\TripItem;
+use App\Models\User;
 use App\Services\TripService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -51,12 +52,18 @@ class TripController extends Controller
             'data' => new Trip([
                 'trip_date' => now()->toDateString(),
             ]),
+            'drivers' => User::query()
+                ->where('role_name', User::ROLE_DRIVER)
+                ->where('status', 'active')
+                ->orderBy('name')
+                ->orderBy('last_name')
+                ->get(),
         ]);
     }
 
     public function store(Request $request)
     {
-        $data = $this->validatedTripData($request);
+        $data = $this->applySelectedDriver($this->validatedTripData($request));
         $data['created_by'] = Auth::user()->name ?? null;
         $data['updated_by'] = Auth::user()->name ?? null;
 
@@ -101,6 +108,12 @@ class TripController extends Controller
 
         return view('admin.trip.edit', [
             'data' => $trip,
+            'drivers' => User::query()
+                ->where('role_name', User::ROLE_DRIVER)
+                ->where('status', 'active')
+                ->orderBy('name')
+                ->orderBy('last_name')
+                ->get(),
         ]);
     }
 
@@ -110,7 +123,7 @@ class TripController extends Controller
             return redirect()->route('admin.trips.show', $trip)->withErrors(['trip' => 'รอบขนส่งที่เสร็จสิ้นหรือยกเลิกแล้วแก้ไขไม่ได้']);
         }
 
-        $data = $this->validatedTripData($request);
+        $data = $this->applySelectedDriver($this->validatedTripData($request));
         $data['updated_by'] = Auth::user()->name ?? null;
         $trip->update($data);
 
@@ -287,6 +300,13 @@ class TripController extends Controller
     {
         return $request->validate([
             'trip_date' => ['required', 'date'],
+            'driver_user_id' => [
+                'nullable',
+                Rule::exists('users', 'id')->where(function ($query) {
+                    $query->where('role_name', User::ROLE_DRIVER)
+                        ->where('status', 'active');
+                }),
+            ],
             'driver_name' => ['nullable', 'string', 'max:100'],
             'driver_mobile' => ['nullable', 'regex:/^\d{9,10}$/'],
             'car_id' => ['nullable', 'string', 'max:100'],
@@ -314,6 +334,23 @@ class TripController extends Controller
         }
 
         return redirect()->route('admin.trips.show', $trip)->with('success', $message);
+    }
+
+    private function applySelectedDriver(array $data): array
+    {
+        if (empty($data['driver_user_id'])) {
+            return $data;
+        }
+
+        $driver = User::find($data['driver_user_id']);
+
+        if (! $driver) {
+            return $data;
+        }
+
+        $data['driver_name'] = trim($driver->name . ' ' . $driver->last_name);
+
+        return $data;
     }
 
     private function isReadOnly(Trip $trip): bool

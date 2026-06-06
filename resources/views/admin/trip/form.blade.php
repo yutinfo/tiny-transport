@@ -7,6 +7,19 @@
     </div>
     <div class="col-md-3">
         <div class="form-group">
+            <label for="driver_user_id">บัญชีคนขับรถ</label>
+            <select name="driver_user_id" id="driver_user_id" class="form-control">
+                <option value="">-- เลือกคนขับ --</option>
+                @foreach($drivers ?? [] as $driver)
+                    <option value="{{ $driver->id }}" {{ (string) old('driver_user_id', $data->driver_user_id) === (string) $driver->id ? 'selected' : '' }}>
+                        {{ trim($driver->name . ' ' . $driver->last_name) }}
+                    </option>
+                @endforeach
+            </select>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="form-group">
             <label for="driver_name">พนักงานขับรถ</label>
             <input type="text" name="driver_name" id="driver_name" value="{{ old('driver_name', $data->driver_name) }}" class="form-control">
         </div>

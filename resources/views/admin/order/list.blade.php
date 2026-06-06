@@ -45,11 +45,10 @@
                             <div class="col-sm-6">
                                 <div class="d-flex flex-row">
                                     <h5 class="font-weight-bold">
-                                        รายการจัดการออเดอร์ &nbsp;
+                                        รายการจัดการออเดอร์
                                     </h5>
-                                    | &nbsp; &nbsp;
                                     <ol class="breadcrumb ">
-                                        <li class="breadcrumb-item"><a href="#"> <small> หน้าหลัก</small></a></li>
+                                        <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}"> <small> หน้าหลัก</small></a></li>
                                         <li class="breadcrumb-item active"> <small> รายการจัดการออเดอร์</small></li>
                                     </ol>
 
@@ -86,6 +85,7 @@
 
                                     <div class="form-group  col-sm-6">
                                         <div class="input-group">
+                                            <label for="select_date" class="sr-only">วันที่ค้นหา</label>
                                             <div class="input-group-prepend">
                                                 <span class="input-group-text">
                                                     <i class="far fa-calendar-alt"></i>
@@ -98,8 +98,7 @@
                                             <input type="hidden" name="db_date" value="{{\Carbon\Carbon::now()->format("Y-m-d")}}">
                                             <input type="text" name="select_date" class="form-control float-right" id="select_date" value="" placeholder="เลือกวัน">
                                             @endif
-                                            &nbsp; &nbsp;
-                                            <button class="btn  bg-info" id="view_report">
+                                            <button class="btn bg-info ml-sm-2" id="view_report">
                                                 <i class="fas fa-search"></i> ค้นหา
                                             </button>
                                         </div>
@@ -158,7 +157,7 @@
                                     <td>{{$value["parcel_pickup_type"]}}</td>
                                     <td>
                                         <a class="btn  bg-info btn-xs" href="{{route('admin.orders.edit',$value["order_id"])}}"><i class="fas fa-edit"></i> แก้ไข </a>
-                                        <a class="btn  bg-danger btn-xs" onclick="dt('{{$value['order_receive_id']}}','{{$value['customer_name']}}')" ><i class="fas fa-trash-alt"></i> ลบ </a>
+                                        <button type="button" class="btn bg-danger btn-xs" onclick="dt('{{$value['order_receive_id']}}','{{$value['customer_name']}}')"><i class="fas fa-trash-alt"></i> ลบ</button>
                                 </td>
                                 </tr>
                                 @if ($value == end($data))

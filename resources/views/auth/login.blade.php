@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="th">
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -36,6 +36,7 @@
                            name="username"
                            value="{{ old('username') }}"
                            placeholder="username"
+                           aria-label="Username"
                            class="form-control @error('username') is-invalid @enderror">
                     <div class="input-group-append">
                         <div class="input-group-text"><span class="fas fa-envelope"></span></div>
@@ -47,6 +48,7 @@
                     <input type="password"
                            name="password"
                            placeholder="Password"
+                           aria-label="Password"
                            class="form-control @error('password') is-invalid @enderror">
                     <div class="input-group-append">
                         <div class="input-group-text">

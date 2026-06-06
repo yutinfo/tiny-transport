@@ -9,14 +9,14 @@
                 <div class="col-sm-6">
                     <!-- text input -->
                     <div class="form-group">
-                        <label>ชื่อเข้าใช้ระบบ Username</label>
-                        <input type="text" @isset($data->username) disabled @endif name="username" value="{{old('username',$data->username??'')}}" class="form-control" placeholder="ขื่อ ...">
+                        <label for="username">ชื่อเข้าใช้ระบบ Username</label>
+                        <input type="text" @isset($data->username) disabled @endif name="username" id="username" value="{{old('username',$data->username??'')}}" class="form-control" placeholder="ขื่อ ...">
                     </div>
                 </div>
                 <div class="col-sm-6">
                     <div class="form-group">
-                        <label>รหัสผ่าน Password</label>
-                        <input type="password" name="password"  class="form-control" placeholder=" ...">
+                        <label for="password">รหัสผ่าน Password</label>
+                        <input type="password" name="password" id="password" class="form-control" placeholder=" ...">
                     </div>
                 </div>
             </div>
@@ -24,8 +24,8 @@
                 <div class="col-sm-6">
                     <!-- text input -->
                     <div class="form-group">
-                        <label>บทบาท</label>
-                       <select name="role_name" id="" class="form-control">
+                        <label for="role_name">บทบาท</label>
+                       <select name="role_name" id="role_name" class="form-control">
                         <option value="">-- เลือก --</option>
                            <option  @isset($data->role_name) {{$data->role_name=='admin'?'selected':''}} @endif value="admin">ผู้ดูแลระบบ</option>
                            <option  @isset($data->role_name) {{$data->role_name=='staff'?'selected':''}} @endif value="staff">พนักงาน</option>

@@ -6,11 +6,10 @@
                     <div class="col-sm-6">
                         <div class="d-flex flex-row">
                             <h5 class="font-weight-bold">
-                                {{$title}} &nbsp;
+                                {{$title}}
                             </h5>
-                            | &nbsp; &nbsp;
                             <ol class="breadcrumb ">
-                                <li class="breadcrumb-item"><a href="#"> <small> หน้าหลัก</small></a></li>
+                                <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}"> <small> หน้าหลัก</small></a></li>
                                 <li class="breadcrumb-item "> <small> ข้อมูลผู้ส่ง/ผู้รับ</small></li>
                                 <li class="breadcrumb-item active"> <small> {{$mode}}</small></li>
                             </ol>

@@ -27,11 +27,10 @@
                             <div class="col-sm-6">
                         <div class="d-flex flex-row">
                             <h5 class="font-weight-bold">
-                               แก้ไขข้อมูลออเดอร์ &nbsp;
-                                </h5>
-                            | &nbsp; &nbsp;
+                               แก้ไขข้อมูลออเดอร์
+                            </h5>
                             <ol class="breadcrumb ">
-                                <li class="breadcrumb-item"><a href="#"> <small> หน้าหลัก</small></a></li>
+                                <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}"> <small> หน้าหลัก</small></a></li>
                                 <li class="breadcrumb-item "> <small>รายการจัดการออเดอร์</small></li>
                                 <li class="breadcrumb-item active"> <small> แก้ไข </small></li>
                                 <li class="breadcrumb-item active"> <small> {{$data->id}} </small></li>

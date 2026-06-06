@@ -26,11 +26,10 @@
                             <div class="col-sm-6">
                         <div class="d-flex flex-row">
                             <h5 class="font-weight-bold">
-                                บันทึกข้อมูลออเดอร์ &nbsp;
+                                บันทึกข้อมูลออเดอร์
                                 </h5>
-                            | &nbsp; &nbsp;
                             <ol class="breadcrumb ">
-                                <li class="breadcrumb-item"><a href="#"> <small> หน้าหลัก</small></a></li>
+                                <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}"> <small> หน้าหลัก</small></a></li>
                                 <li class="breadcrumb-item "> <small> รายการจัดการออเดอร์</small></li>
                                 <li class="breadcrumb-item active"> <small> สร้าง</small></li>
                             </ol>

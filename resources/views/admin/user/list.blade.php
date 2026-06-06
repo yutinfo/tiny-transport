@@ -10,11 +10,10 @@
                             <div class="col-sm-6">
                                 <div class="d-flex flex-row">
                                     <h5 class="font-weight-bold">
-                                        จัดการผู้ใช้ &nbsp;
+                                        จัดการผู้ใช้
                                     </h5>
-                                    | &nbsp; &nbsp;
                                     <ol class="breadcrumb ">
-                                        <li class="breadcrumb-item"><a href="#"> <small> หน้าหลัก</small></a></li>
+                                        <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}"> <small> หน้าหลัก</small></a></li>
                                         <li class="breadcrumb-item active"> <small> จัดการผู้ใช้</small></li>
                                     </ol>
 

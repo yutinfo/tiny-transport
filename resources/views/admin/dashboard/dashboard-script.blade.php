@@ -20,10 +20,10 @@
 
     	$("#order_table").DataTable({
     			"ordering": false,
-    			"responsive": false,
+                "responsive": true,
     			"searching": false,
     			"lengthChange": true,
-    			"autoWidth": true,
+                "autoWidth": false,
     			"dom": 'Bfrtip',
     			"buttons": [{
     					extend: 'csv',

@@ -54,11 +54,10 @@
                         <div class="col-sm-8">
                             <div class="d-flex flex-row">
                                 <h5 class="font-weight-bold">
-                                    หน้าหลัก &nbsp;
+                                    หน้าหลัก
                                 </h5>
-                                | &nbsp; &nbsp;
                                 <ol class="breadcrumb ">
-                                    <li class="breadcrumb-item"><a href="#"> <small> หน้าหลัก</small></a></li>
+                                    <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}"> <small> หน้าหลัก</small></a></li>
                                     <li class="breadcrumb-item active"> <small>แดชบอร์ด</small></li>
                                 </ol>
 
@@ -140,6 +139,7 @@
 
                                         <div class="form-group  col-sm-6">
 
+                                        <label for="select_province" class="sr-only">จังหวัด</label>
                                         <select class="form-control" id="select_province" name="select_province">
                                             <option value="">เลือกจังหวัด</option>
                                             @foreach ($province as $item)
@@ -158,6 +158,7 @@
 
                                         <div class="form-group  col-sm-6">
                                             <div class="input-group">
+                                                <label for="select_date" class="sr-only">วันที่รายงาน</label>
                                                 <div class="input-group-prepend">
                                                     <span class="input-group-text">
                                                         <i class="far fa-calendar-alt"></i>
@@ -171,8 +172,7 @@
                                                 <input type="text" name="select_date" class="form-control float-right" id="select_date" value="" placeholder="เลือกวัน">
                                                 @endif
 
-                                                &nbsp; &nbsp;
-                                                <button class="btn  bg-info" id="view_report">
+                                                <button class="btn bg-info ml-sm-2" id="view_report">
                                                     <i class="far fa-chart-bar"></i> ดูรายงาน
                                                 </button>
                                             </div>

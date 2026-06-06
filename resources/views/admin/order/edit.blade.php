@@ -12,12 +12,12 @@
 
 
 @push('page_css')
-    @include('ta-admin.order.edit-form-component.edit-style')
+    @include('admin.order.edit-form-component.edit-style')
 @endpush()
 
 @section('content')
     <div class="container-fluid">
-        <form id="order_update" action="{{route('ta-admin.orders.update',$data->id)}}" method="POST">
+        <form id="order_update" action="{{route('admin.orders.update',$data->id)}}" method="POST">
             @method("PUT")
     <section class="content-header">
             <div class="container-fluid">
@@ -47,7 +47,7 @@
                             </button>
 
                             </a>
-                            <a class="btn  bg-danger" href="{{route('ta-admin.orders.index')}}">
+                            <a class="btn  bg-danger" href="{{route('admin.orders.index')}}">
                                 <i class="fas fa-trash-alt"></i> ยกเลิก
                             </a>
                         </div>
@@ -67,14 +67,14 @@
                 </div>
                 <div class="row">
                     <div class="col-md-6">
-                       @include('ta-admin.order.edit-form-component.sender')
-                       @include('ta-admin.order.edit-form-component.driver')
+                       @include('admin.order.edit-form-component.sender')
+                       @include('admin.order.edit-form-component.driver')
 
 
                     </div>
                     <div class="col-md-6">
                         @foreach ($data->receivers as $data_item)
-                         @include('ta-admin.order.edit-form-component.receiver',[
+                         @include('admin.order.edit-form-component.receiver',[
                              'data_item'=>$data_item
                          ])
                         @endforeach
@@ -101,7 +101,7 @@
                             </button>
 
                             </a>
-                            <a class="btn  bg-danger" href="{{route('ta-admin.orders.index')}}">
+                            <a class="btn  bg-danger" href="{{route('admin.orders.index')}}">
                                 <i class="fas fa-trash-alt"></i> ยกเลิก
                             </a>
                         </div>
@@ -142,13 +142,13 @@
 				scrollTop: 0
 			}, "fast");
             setTimeout(() => {
-                window.location.href = "{{route('ta-admin.orders.index')}}";
+                window.location.href = "{{route('admin.orders.index')}}";
             }, 2000);
     })
 </script>
 @endif
 
-    @include('ta-admin.order.edit-form-component.edit-script')
+    @include('admin.order.edit-form-component.edit-script')
 @endpush()
 
 

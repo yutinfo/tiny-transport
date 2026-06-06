@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/', function () {
-    return redirect('ta-admin');
+    return redirect('admin');
 });
 Route::get('/login', [App\Http\Controllers\LoginController::class, 'show'])->name('login.show');
 Route::post('/login', [App\Http\Controllers\LoginController::class, 'login'])->name('login.login');

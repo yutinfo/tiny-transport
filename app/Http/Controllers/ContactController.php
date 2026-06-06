@@ -30,7 +30,7 @@ class ContactController extends Controller
             $query->where('type', $request->type);
         }
 
-        return view('ta-admin.contact.list', [
+        return view('admin.contact.list', [
             'data' => $query->paginate(20)->appends($request->query()),
             'typeLabels' => Contact::typeLabels(),
             'selected' => $request->only(['keyword', 'type']),
@@ -39,7 +39,7 @@ class ContactController extends Controller
 
     public function create()
     {
-        return view('ta-admin.contact.create', [
+        return view('admin.contact.create', [
             'data' => new Contact(),
             'typeLabels' => Contact::typeLabels(),
             'provinces' => Province::orderBy('name_th')->get(),
@@ -54,12 +54,12 @@ class ContactController extends Controller
 
         Contact::create($data);
 
-        return redirect()->route('ta-admin.contacts.create')->with('success', 'Contact created.');
+        return redirect()->route('admin.contacts.create')->with('success', 'Contact created.');
     }
 
     public function edit($id)
     {
-        return view('ta-admin.contact.edit', [
+        return view('admin.contact.edit', [
             'data' => Contact::findOrFail($id),
             'typeLabels' => Contact::typeLabels(),
             'provinces' => Province::orderBy('name_th')->get(),
@@ -74,14 +74,14 @@ class ContactController extends Controller
 
         $contact->update($data);
 
-        return redirect()->route('ta-admin.contacts.edit', $contact->id)->with('success', 'Contact updated.');
+        return redirect()->route('admin.contacts.edit', $contact->id)->with('success', 'Contact updated.');
     }
 
     public function destroy($id)
     {
         Contact::findOrFail($id)->delete();
 
-        return redirect()->route('ta-admin.contacts.index')->with('success', 'Contact deleted.');
+        return redirect()->route('admin.contacts.index')->with('success', 'Contact deleted.');
     }
 
     private function validatedData(Request $request, ?int $ignoreId = null): array

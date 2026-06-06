@@ -10,8 +10,8 @@
 
 @section('content')
     <div class="container-fluid">
-        <form action="{{route('ta-admin.contacts.store')}}" method="post">
-            @include('ta-admin.contact.form-component.header', ['title' => 'บันทึกข้อมูลผู้ส่ง/ผู้รับ', 'mode' => 'สร้าง'])
+        <form action="{{route('admin.contacts.store')}}" method="post">
+            @include('admin.contact.form-component.header', ['title' => 'บันทึกข้อมูลผู้ส่ง/ผู้รับ', 'mode' => 'สร้าง'])
 
             <section class="content">
                 <div class="container-fluid">
@@ -22,7 +22,7 @@
                     </div>
                     <div class="row">
                         <div class="col-md-12">
-                            @include('ta-admin.contact.form-component.form')
+                            @include('admin.contact.form-component.form')
                         </div>
                     </div>
                 </div>
@@ -33,5 +33,5 @@
 @endsection
 
 @push('page_scripts')
-    @include('ta-admin.contact.form-component.script')
+    @include('admin.contact.form-component.script')
 @endpush

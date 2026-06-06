@@ -20,7 +20,7 @@
                                 </div>
                             </div>
                             <div class="col-sm-6 text-right">
-                                <a class="btn  bg-success" href="{{route('ta-admin.contacts.create')}}">
+                                <a class="btn  bg-success" href="{{route('admin.contacts.create')}}">
                                     <i class="fas fa-plus"></i> เพิ่มรายการ
                                 </a>
                             </div>
@@ -38,7 +38,7 @@
             </div>
 
             <div class="card">
-                <form action="{{route('ta-admin.contacts.index')}}" method="GET">
+                <form action="{{route('admin.contacts.index')}}" method="GET">
                     <div class="card-body">
                         <div class="row">
                             <div class="col-md-5">
@@ -62,7 +62,7 @@
                                 <button type="submit" class="btn bg-info mr-2">
                                     <i class="fas fa-search"></i> ค้นหา
                                 </button>
-                                <a href="{{route('ta-admin.contacts.index')}}" class="btn bg-secondary">
+                                <a href="{{route('admin.contacts.index')}}" class="btn bg-secondary">
                                     <i class="fas fa-redo"></i> ล้าง
                                 </a>
                             </div>
@@ -106,10 +106,10 @@
                                     </td>
                                     <td>{{$value->province_name}}</td>
                                     <td class="text-right">
-                                        <a href="{{route('ta-admin.contacts.edit', $value->id)}}" class="btn bg-info btn-xs">
+                                        <a href="{{route('admin.contacts.edit', $value->id)}}" class="btn bg-info btn-xs">
                                             <i class="fas fa-edit"></i> แก้ไข
                                         </a>
-                                        <form action="{{route('ta-admin.contacts.destroy', $value->id)}}" method="POST" class="d-inline" onsubmit="return confirm('ยืนยันการลบข้อมูลนี้?')">
+                                        <form action="{{route('admin.contacts.destroy', $value->id)}}" method="POST" class="d-inline" onsubmit="return confirm('ยืนยันการลบข้อมูลนี้?')">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="btn bg-danger btn-xs">

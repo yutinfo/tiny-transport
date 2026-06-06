@@ -21,7 +21,7 @@
                                 </div>
                             </div>
                             <div class="col-sm-6 text-right">
-                                <a class="btn  bg-success" href="{{route('ta-admin.users.create')}}">
+                                <a class="btn  bg-success" href="{{route('admin.users.create')}}">
                                     <i class="fas fa-plus"></i> เพิ่มรายการ
                                 </a>
                             </div>
@@ -64,7 +64,7 @@
                                 <td>{{$value["role_name"]}}</td>
                                 <td>{{$value["status"]}}</td>
                                 <td>
-                                    <a href="{{route('ta-admin.users.edit',$value["id"])}}" class="btn  bg-info btn-xs"><i class="fas fa-edit"></i> แก้ไข </a>
+                                    <a href="{{route('admin.users.edit',$value["id"])}}" class="btn  bg-info btn-xs"><i class="fas fa-edit"></i> แก้ไข </a>
                             </td>
                             </tr>
                             @endforeach

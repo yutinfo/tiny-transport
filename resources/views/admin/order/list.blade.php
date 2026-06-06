@@ -56,7 +56,7 @@
                                 </div>
                             </div>
                             <div class="col-sm-6 text-right">
-                                <a class="btn  bg-success" href="{{route('ta-admin.orders.create')}}">
+                                <a class="btn  bg-success" href="{{route('admin.orders.create')}}">
                                     <i class="fas fa-plus"></i> เพิ่มรายการ
                                 </a>
                             </div>
@@ -74,7 +74,7 @@
 
                         </div>
                         <div class="col-sm-6 text-right">
-                            <form action="{{route('ta-admin.orders.index')}}" method="GET"  id="generate_report">
+                            <form action="{{route('admin.orders.index')}}" method="GET"  id="generate_report">
                                 @csrf
                             <div class="col-sm-12 text-right">
                                 <div class="row">
@@ -157,7 +157,7 @@
                                     <td>{{$value["payment_type"]}}</td>
                                     <td>{{$value["parcel_pickup_type"]}}</td>
                                     <td>
-                                        <a class="btn  bg-info btn-xs" href="{{route('ta-admin.orders.edit',$value["order_id"])}}"><i class="fas fa-edit"></i> แก้ไข </a>
+                                        <a class="btn  bg-info btn-xs" href="{{route('admin.orders.edit',$value["order_id"])}}"><i class="fas fa-edit"></i> แก้ไข </a>
                                         <a class="btn  bg-danger btn-xs" onclick="dt('{{$value['order_receive_id']}}','{{$value['customer_name']}}')" ><i class="fas fa-trash-alt"></i> ลบ </a>
                                 </td>
                                 </tr>
@@ -212,5 +212,5 @@
 @endsection
 
 @push('page_scripts')
-    @include('ta-admin.order.form-component.list-script')
+    @include('admin.order.form-component.list-script')
 @endpush()

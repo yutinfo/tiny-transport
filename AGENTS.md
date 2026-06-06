@@ -7,7 +7,7 @@ Guidance for Codex and other AI agents working in this repository.
 - Framework: Laravel 9 on PHP 8.0+.
 - Frontend build: Laravel Mix with Webpack, Sass, Bootstrap 4, AdminLTE 3, jQuery, and Font Awesome 4.
 - Main app areas: `app/`, `routes/`, `database/`, `resources/views/`, `resources/sass/`, and compiled assets in `public/`.
-- Views are Blade templates under `resources/views`, with admin screens under `resources/views/ta-admin`.
+- Views are Blade templates under `resources/views`, with admin screens under `resources/views/admin`.
 
 ## Working Rules
 

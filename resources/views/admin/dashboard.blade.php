@@ -133,7 +133,7 @@
 
                             </div>
                             <div class="col-sm-6 text-right">
-                                <form action="{{route('ta-admin.dashboard')}}" method="GET"  id="generate_report">
+                                <form action="{{route('admin.dashboard')}}" method="GET"  id="generate_report">
                                     @csrf
                                 <div class="col-sm-12 text-right">
                                     <div class="row">
@@ -282,5 +282,5 @@
 @endsection
 
 @push('page_scripts')
-    @include('ta-admin.dashboard.dashboard-script')
+    @include('admin.dashboard.dashboard-script')
 @endpush()

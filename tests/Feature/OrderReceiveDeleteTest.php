@@ -17,7 +17,7 @@ class OrderReceiveDeleteTest extends TestCase
         $order = $this->createOrderWithReceivers();
         $receiver = $order->receivers()->first();
 
-        $this->deleteJson(route('ta-admin.orderreceive.delete', $receiver->id))
+        $this->deleteJson(route('admin.orderreceive.delete', $receiver->id))
             ->assertUnauthorized();
 
         $this->assertDatabaseHas('order_receives', [
@@ -32,7 +32,7 @@ class OrderReceiveDeleteTest extends TestCase
         $receiver = $order->receivers()->first();
 
         $this->actingAs($user)
-            ->deleteJson(route('ta-admin.orderreceive.delete', $receiver->id))
+            ->deleteJson(route('admin.orderreceive.delete', $receiver->id))
             ->assertOk()
             ->assertJson([
                 'deleted' => true,

@@ -20,7 +20,7 @@
                         <button type="submit" class="btn bg-success">
                             <i class="fas fa-save"></i> บันทึก
                         </button>
-                        <a class="btn bg-danger" href="{{route('ta-admin.contacts.index')}}">
+                        <a class="btn bg-danger" href="{{route('admin.contacts.index')}}">
                             <i class="fas fa-trash-alt"></i> ยกเลิก
                         </a>
                     </div>

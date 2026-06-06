@@ -8,7 +8,7 @@ $role_name = Auth::user()->role_name;
 @endphp
 @if ($role_name == 'admin')
 <li class="nav-item">
-    <a href="{{ route('ta-admin.dashboard') }}" class="nav-link {{ $route_name=='dashboard' ? 'active' : '' }}">
+    <a href="{{ route('admin.dashboard') }}" class="nav-link {{ $route_name=='dashboard' ? 'active' : '' }}">
         <i class="nav-icon fas fa-tachometer-alt"></i>
         <p>หน้าหลัก</p>
     </a>
@@ -16,13 +16,13 @@ $role_name = Auth::user()->role_name;
 @endif
 @if ($role_name=='admin'||$role_name=='staff')
 <li class="nav-item">
-    <a href="{{ route('ta-admin.orders.index') }}" class="nav-link {{ $route_name=='orders' ? 'active' : '' }}">
+    <a href="{{ route('admin.orders.index') }}" class="nav-link {{ $route_name=='orders' ? 'active' : '' }}">
         <i class="nav-icon fas fa-th-list"></i>
         <p>รายการออเดอร์</p>
     </a>
 </li>
 <li class="nav-item">
-    <a href="{{ route('ta-admin.contacts.index') }}" class="nav-link {{ $route_name=='contacts' ? 'active' : '' }}">
+    <a href="{{ route('admin.contacts.index') }}" class="nav-link {{ $route_name=='contacts' ? 'active' : '' }}">
         <i class="nav-icon fas fa-address-book"></i>
         <p>ข้อมูลผู้ส่ง/ผู้รับ</p>
     </a>
@@ -30,7 +30,7 @@ $role_name = Auth::user()->role_name;
 @endif
 @if ($role_name=='admin')
 <li class="nav-item">
-    <a href="{{ route('ta-admin.users.index') }}" class="nav-link {{ $route_name=='users' ? 'active' : '' }}">
+    <a href="{{ route('admin.users.index') }}" class="nav-link {{ $route_name=='users' ? 'active' : '' }}">
         <i class="nav-icon  fas fa-user-alt"></i>
         <p>ผู้ใช้งาน</p>
     </a>

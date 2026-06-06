@@ -73,7 +73,7 @@ class DashboardController extends Controller
 
         $order_model = $this->wrapDataIndex($order_model,$request);
 
-        return view('ta-admin.dashboard',[
+        return view('admin.dashboard',[
             'data' =>(array)Arr::get($orders,'0',null),
             'province' =>$province,
             'dataTable' =>$order_model,

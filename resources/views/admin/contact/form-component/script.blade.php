@@ -92,7 +92,7 @@ $(function() {
         $(".msg-alert-success-show-text").html("").append("บันทึกข้อมูลสำเร็จ");
         $(".msg-alert-success").show("slow");
         setTimeout(function() {
-            window.location.href = "{{route('ta-admin.contacts.index')}}";
+            window.location.href = "{{route('admin.contacts.index')}}";
         }, 1200);
     @endif
 });

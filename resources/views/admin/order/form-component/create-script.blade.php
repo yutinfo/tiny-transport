@@ -1,7 +1,7 @@
 <script>
     let receiver =1;
 </script>
-@include("ta-admin.order.form-component._function-script")
+@include("admin.order.form-component._function-script")
 <script>
 
 $(function() {

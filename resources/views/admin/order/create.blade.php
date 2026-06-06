@@ -12,12 +12,12 @@
 
 
 @push('page_css')
-    @include('ta-admin.order.form-component.create-style')
+    @include('admin.order.form-component.create-style')
 @endpush()
 
 @section('content')
     <div class="container-fluid">
-        <form id="order_create" action="{{route('ta-admin.orders.store')}}" method="post">
+        <form id="order_create" action="{{route('admin.orders.store')}}" method="post">
     <section class="content-header">
             <div class="container-fluid">
                 <div class="card">
@@ -46,7 +46,7 @@
                             </button>
 
                             </a>
-                            <a class="btn  bg-danger btn-responsive" href="{{route('ta-admin.orders.index')}}">
+                            <a class="btn  bg-danger btn-responsive" href="{{route('admin.orders.index')}}">
                                 <i class="fas fa-trash-alt"></i> ยกเลิก
                             </a>
                         </div>
@@ -66,13 +66,13 @@
                 </div>
                 <div class="row">
                     <div class="col-md-6">
-                       @include('ta-admin.order.form-component.sender')
-                       @include('ta-admin.order.form-component.driver')
+                       @include('admin.order.form-component.sender')
+                       @include('admin.order.form-component.driver')
 
-                       @include('ta-admin.order.form-component.receivers-table')
+                       @include('admin.order.form-component.receivers-table')
                     </div>
                     <div class="col-md-6">
-                        @include('ta-admin.order.form-component.receiver')
+                        @include('admin.order.form-component.receiver')
                     </div>
                 </div>
                 <!-- /.row -->
@@ -95,7 +95,7 @@
                             </button>
 
                             </a>
-                            <a class="btn  bg-danger" href="{{route('ta-admin.orders.index')}}">
+                            <a class="btn  bg-danger" href="{{route('admin.orders.index')}}">
                                 <i class="fas fa-trash-alt"></i> ยกเลิก
                             </a>
                         </div>
@@ -111,7 +111,7 @@
 @endsection
 
 @push('page_scripts')
-    @include('ta-admin.order.form-component.create-script')
+    @include('admin.order.form-component.create-script')
 @endpush()
 
 

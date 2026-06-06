@@ -64,11 +64,11 @@ docker compose down
 
 | Method | Path | Description |
 |--------|------|-------------|
-| GET | `/ta-admin/dashboard` | Dashboard |
-| GET/POST | `/ta-admin/orders` | จัดการใบสั่งงาน |
-| DELETE | `/ta-admin/order-receive/{id}` | ลบรายการรับงาน |
-| GET/POST | `/ta-admin/contacts` | จัดการข้อมูลติดต่อ |
-| GET/POST | `/ta-admin/users` | จัดการผู้ใช้งาน |
+| GET | `/admin/dashboard` | Dashboard |
+| GET/POST | `/admin/orders` | จัดการใบสั่งงาน |
+| DELETE | `/admin/order-receive/{id}` | ลบรายการรับงาน |
+| GET/POST | `/admin/contacts` | จัดการข้อมูลติดต่อ |
+| GET/POST | `/admin/users` | จัดการผู้ใช้งาน |
 
 ## API
 

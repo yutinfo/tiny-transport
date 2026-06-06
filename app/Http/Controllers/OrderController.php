@@ -48,7 +48,7 @@ class OrderController extends Controller
 
 
         $order_model = $this->wrapDataIndex($order_model);
-        return view('ta-admin.order.list', [
+        return view('admin.order.list', [
             'data' => $order_model,
             'selected' =>[
                 $request->all()??""
@@ -63,7 +63,7 @@ class OrderController extends Controller
      */
     public function create()
     {
-        return view('ta-admin.order.create');
+        return view('admin.order.create');
     }
 
     /**
@@ -320,7 +320,7 @@ class OrderController extends Controller
     {
         $order_model = Order::with('receivers')->find($id);
 
-        return view('ta-admin.order.edit', [
+        return view('admin.order.edit', [
             'data' => $order_model
         ]);
     }
@@ -349,11 +349,11 @@ class OrderController extends Controller
                 }
             });
 
-            return redirect()->route('ta-admin.orders.edit', [
+            return redirect()->route('admin.orders.edit', [
                 'id' => $id
             ])->with('message', 'success');
         }catch(\Exception $e){
-            return redirect()->route('ta-admin.orders.edit', [
+            return redirect()->route('admin.orders.edit', [
                 'id' => $id
             ])->withErrors(
                 $e->getMessage()

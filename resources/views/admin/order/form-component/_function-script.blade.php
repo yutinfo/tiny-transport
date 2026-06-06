@@ -236,7 +236,7 @@
             $("#order_create")[0].reset();
             setTimeout(() => {
                 $(".btn-save,#new_receiver").prop('disabled',false)
-                window.location = "{{route('ta-admin.orders.index')}}";
+                window.location = "{{route('admin.orders.index')}}";
             }, 2000);
 
 		})
@@ -727,7 +727,7 @@ function lookupContactByMobile(contactType, mobile) {
     setContactLookupState(contactType, 'searching', 'กำลังค้นหาข้อมูลจากเบอร์นี้...');
 
     $.ajax({
-        url: "{{route('api.contacts.search')}}",
+        url: "{{route('admin.api.contacts.search')}}",
         method: 'GET',
         dataType: 'JSON',
         data: {
@@ -771,7 +771,7 @@ function lookupContactSuggestions(contactType, mobile) {
     setContactLookupState(contactType, 'searching', 'กำลังค้นหารายการที่ตรงกับ ' + normalizedMobile + '...');
 
     $.ajax({
-        url: "{{route('api.contacts.suggest')}}",
+        url: "{{route('admin.api.contacts.suggest')}}",
         method: 'GET',
         dataType: 'JSON',
         data: {

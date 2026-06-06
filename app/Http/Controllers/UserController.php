@@ -17,7 +17,7 @@ class UserController extends Controller
     public function index()
     {
 
-        return view('ta-admin.user.list',[
+        return view('admin.user.list',[
             'data'=> User::all()->toArray()
         ]);
     }
@@ -29,7 +29,7 @@ class UserController extends Controller
      */
     public function create()
     {
-        return view('ta-admin.user.create');
+        return view('admin.user.create');
     }
 
     /**
@@ -41,7 +41,7 @@ class UserController extends Controller
     public function store(UserCreateRequest $request)
     {
         User::create($request->validated());
-        return redirect()->route('ta-admin.users.create')->with('success', "Account successfully registered.");
+        return redirect()->route('admin.users.create')->with('success', "Account successfully registered.");
     }
 
     /**
@@ -62,7 +62,7 @@ class UserController extends Controller
      */
     public function edit($id)
     {
-        return view('ta-admin.user.edit',[
+        return view('admin.user.edit',[
             'data'=> User::find($id)
         ]);
 
@@ -78,7 +78,7 @@ class UserController extends Controller
     public function update(UserUpdateRequest $request, $id)
     {
          User::find($id)->update($request->validated());
-        return redirect()->route('ta-admin.users.edit',$id)->with('success', "Account successfully registered.");
+        return redirect()->route('admin.users.edit',$id)->with('success', "Account successfully registered.");
     }
 
     /**

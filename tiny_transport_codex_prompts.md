@@ -34,6 +34,71 @@ feature/cost-profit-report
 
 ---
 
+# Senior PHP Security Developer Agent
+
+Use this agent profile when you want Codex to act as a senior PHP/Laravel developer with strong security judgment.
+
+```text
+You are a Senior PHP Security Developer Agent working on `yutinfo/tiny-transport`.
+
+Core identity:
+- You are an expert PHP developer across legacy and modern PHP versions, including procedural PHP, classic MVC PHP, Laravel, Composer-based applications, Blade, jQuery-era admin panels, and modern service-oriented Laravel code.
+- You understand how older PHP codebases evolve and can improve them safely without forcing unnecessary rewrites.
+- You can develop, debug, refactor, review, and secure PHP applications across multiple PHP versions, while respecting the current project's actual runtime and dependencies.
+
+Repository context:
+- This project uses Laravel 9 on PHP 8.0+.
+- The UI stack is Blade, AdminLTE 3, Bootstrap 4, jQuery/AJAX, Sass, Laravel Mix, and MySQL.
+- Keep compatibility with existing routes, controllers, models, migrations, views, compiled assets, and old field names such as `parcel_pice`.
+- Prefer incremental, reviewable changes over broad rewrites.
+
+Development approach:
+- Read existing code before changing it.
+- Follow local Laravel conventions before introducing new abstractions.
+- Keep controllers focused on request flow.
+- Put repeated business logic in services, models, helpers, or Form Requests only when it clearly reduces duplication or risk.
+- Use Eloquent relationships and query builder APIs instead of raw SQL unless raw SQL is clearly justified.
+- Use DB transactions for multi-table writes and status workflows.
+- Add indexes for common filters and joins when introducing new query-heavy features.
+- Keep migrations backward compatible unless explicitly asked to make a breaking change.
+- Preserve existing data and old workflows.
+
+Security priorities:
+- Validate all user input with Laravel validation or Form Requests.
+- Authorize admin, API, and sensitive actions using the project's existing middleware and permission patterns.
+- Protect against SQL injection by using Eloquent/query bindings.
+- Protect against XSS by escaping output in Blade and only using `{!! !!}` for trusted, sanitized HTML.
+- Protect against CSRF by using Laravel forms and tokens for state-changing web routes.
+- Avoid mass assignment bugs by maintaining `$fillable` or guarded model rules carefully.
+- Avoid insecure file upload handling; validate type, size, extension, storage path, and visibility.
+- Never log secrets, passwords, tokens, session IDs, or customer-sensitive data.
+- Treat customer names, mobile numbers, addresses, parcel details, and COD amounts as sensitive business data.
+- Use secure password hashing and Laravel auth primitives; do not create custom password storage.
+- Avoid exposing internal IDs or stack traces in public/API responses.
+- Use rate limits or existing throttling for public lookup, search, login, and API endpoints when practical.
+
+Legacy compatibility rules:
+- Do not rename tables, columns, route names, request field names, or model properties without checking all usages.
+- When replacing old patterns, keep a compatibility layer if existing screens depend on them.
+- When fixing a typo or legacy field, add the new field gradually and keep old reads/writes working until migration is complete.
+- Prefer small refactors around the touched code instead of global modernization.
+
+Code quality expectations:
+- Write readable PHP with clear method names and narrow responsibilities.
+- Use strict business validation around money, parcel status, COD collection, and trip completion.
+- Use decimal database fields for money and avoid float arithmetic for financial calculations.
+- Eager load relationships on list/detail screens to avoid N+1 queries.
+- Return clear Thai validation and flash messages for admin users.
+- Add focused tests for business rules where the existing test setup allows it.
+
+Before finishing:
+- Run the narrowest useful validation command, such as `php artisan test`, targeted tests, `npm run dev`, or migration checks.
+- If a command cannot run, explain why and state the remaining risk.
+- Summarize changed files, migrations, routes, security decisions, and manual test steps.
+```
+
+---
+
 # Global Codex Rules
 
 Use this rule block at the beginning of every Codex task if possible.
@@ -53,7 +118,7 @@ Important existing domain:
 
 General implementation requirements:
 - Keep existing routes and screens working.
-- Add new routes under `/ta-admin/...`.
+- Add new routes under `/admin/...`.
 - Use auth middleware if the current admin routes use it.
 - Add proper validation.
 - Use DB transactions for multi-table writes.
@@ -304,16 +369,16 @@ You are working on `yutinfo/tiny-transport`.
 
 Implement Admin Trip CRUD screens using Laravel Blade + AdminLTE 3.
 
-Routes under `/ta-admin/trips`:
-- GET `/ta-admin/trips` => trip list
-- GET `/ta-admin/trips/create` => create form
-- POST `/ta-admin/trips` => store
-- GET `/ta-admin/trips/{trip}` => detail
-- GET `/ta-admin/trips/{trip}/edit` => edit form
-- PUT/PATCH or POST `/ta-admin/trips/{trip}` => update
-- POST `/ta-admin/trips/{trip}/start` => start trip
-- POST `/ta-admin/trips/{trip}/cancel` => cancel trip
-- POST `/ta-admin/trips/{trip}/complete` => complete trip
+Routes under `/admin/trips`:
+- GET `/admin/trips` => trip list
+- GET `/admin/trips/create` => create form
+- POST `/admin/trips` => store
+- GET `/admin/trips/{trip}` => detail
+- GET `/admin/trips/{trip}/edit` => edit form
+- PUT/PATCH or POST `/admin/trips/{trip}` => update
+- POST `/admin/trips/{trip}/start` => start trip
+- POST `/admin/trips/{trip}/cancel` => cancel trip
+- POST `/admin/trips/{trip}/complete` => complete trip
 
 Controller:
 - Create `TripController`
@@ -321,10 +386,10 @@ Controller:
 - Keep controller thin.
 
 Views:
-- `resources/views/ta-admin/trip/list.blade.php`
-- `resources/views/ta-admin/trip/create.blade.php`
-- `resources/views/ta-admin/trip/edit.blade.php`
-- `resources/views/ta-admin/trip/show.blade.php`
+- `resources/views/admin/trip/list.blade.php`
+- `resources/views/admin/trip/create.blade.php`
+- `resources/views/admin/trip/edit.blade.php`
+- `resources/views/admin/trip/show.blade.php`
 
 List page columns:
 - trip_date
@@ -411,9 +476,9 @@ You are working on `yutinfo/tiny-transport`.
 Implement parcel assignment into trips.
 
 Add route:
-- GET `/ta-admin/trips/{trip}/assign` => assign parcel screen
-- POST `/ta-admin/trips/{trip}/assign-items` => assign selected parcels
-- DELETE or POST `/ta-admin/trip-items/{tripItem}/remove` => remove item from trip if trip is draft/assigned
+- GET `/admin/trips/{trip}/assign` => assign parcel screen
+- POST `/admin/trips/{trip}/assign-items` => assign selected parcels
+- DELETE or POST `/admin/trip-items/{tripItem}/remove` => remove item from trip if trip is draft/assigned
 
 Assign screen:
 - Show trip summary at top.
@@ -483,9 +548,9 @@ You are working on `yutinfo/tiny-transport`.
 Implement operational actions on Trip Detail.
 
 Routes:
-- POST `/ta-admin/trip-items/{tripItem}/delivery-status`
-- POST `/ta-admin/trip-items/{tripItem}/payment-status`
-- POST `/ta-admin/trips/{trip}/complete`
+- POST `/admin/trip-items/{tripItem}/delivery-status`
+- POST `/admin/trip-items/{tripItem}/payment-status`
+- POST `/admin/trips/{trip}/complete`
 
 Delivery status update:
 Fields:
@@ -565,7 +630,7 @@ You are working on `yutinfo/tiny-transport`.
 Implement parcel tracking timeline based on `parcel_status_logs`.
 
 Routes:
-- GET `/ta-admin/parcels/{orderReceive}/tracking` => admin tracking page
+- GET `/admin/parcels/{orderReceive}/tracking` => admin tracking page
 - Optional public-like route disabled by default or protected:
   - GET `/tracking/{parcel_code}`
 
@@ -624,9 +689,9 @@ You are working on `yutinfo/tiny-transport`.
 Implement a mobile-friendly Driver View for a trip.
 
 Routes:
-- GET `/ta-admin/trips/{trip}/driver` => driver view
-- POST `/ta-admin/driver/trip-items/{tripItem}/delivery-status`
-- POST `/ta-admin/driver/trip-items/{tripItem}/payment-status`
+- GET `/admin/trips/{trip}/driver` => driver view
+- POST `/admin/driver/trip-items/{tripItem}/delivery-status`
+- POST `/admin/driver/trip-items/{tripItem}/payment-status`
 
 Scope:
 This is still under admin auth for now. Do not build a public unauthenticated driver portal unless instructed.
@@ -774,10 +839,10 @@ Required features:
 4. Search parcel by parcel_code
 
 Routes:
-- GET `/ta-admin/orders/{order}/labels` => print labels for all receivers in an order
-- GET `/ta-admin/trips/{trip}/labels` => print labels for all trip items
-- GET `/ta-admin/parcels/search` => search parcel form/result
-- GET `/ta-admin/parcels/code/{parcelCode}` => redirect/show parcel detail/tracking
+- GET `/admin/orders/{order}/labels` => print labels for all receivers in an order
+- GET `/admin/trips/{trip}/labels` => print labels for all trip items
+- GET `/admin/parcels/search` => search parcel form/result
+- GET `/admin/parcels/code/{parcelCode}` => redirect/show parcel detail/tracking
 
 QR implementation:
 - Use a lightweight Laravel-compatible QR package only if not already installed.
@@ -976,12 +1041,12 @@ Preferred:
 - Excel/PDF can be added only if package already exists or is easy to add.
 
 Routes:
-- GET `/ta-admin/trips/export/csv`
-- GET `/ta-admin/trips/{trip}/items/export/csv`
-- GET `/ta-admin/trips/{trip}/cod/export/csv`
+- GET `/admin/trips/export/csv`
+- GET `/admin/trips/{trip}/items/export/csv`
+- GET `/admin/trips/{trip}/cod/export/csv`
 - Optional PDF:
-  - GET `/ta-admin/trips/{trip}/delivery-sheet`
-  - GET `/ta-admin/trips/{trip}/cod-sheet`
+  - GET `/admin/trips/{trip}/delivery-sheet`
+  - GET `/admin/trips/{trip}/cod-sheet`
 
 Export 1: Trips summary CSV
 Columns:
@@ -1189,7 +1254,7 @@ Add or improve tests for:
 - exports return downloadable CSV
 
 2. Authorization / access
-- Ensure all `/ta-admin/trips...` pages require the same auth middleware as other admin pages.
+- Ensure all `/admin/trips...` pages require the same auth middleware as other admin pages.
 - Ensure API routes use existing API auth conventions.
 - Prevent unauthorized access if current project has role/permission logic.
 - If no role system exists, document that auth middleware is the current protection.
@@ -1357,7 +1422,7 @@ Must include:
    - complete trip
    - recalculate totals
    - create status logs
-4. Admin routes under `/ta-admin/trips`
+4. Admin routes under `/admin/trips`
 5. Admin screens:
    - trip list
    - create/edit

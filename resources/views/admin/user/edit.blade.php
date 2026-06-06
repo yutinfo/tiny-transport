@@ -6,7 +6,8 @@
 
 @section('content')
     <div class="container-fluid">
-        <form action="{{route('ta-admin.users.store')}}" method="post">
+        <form action="{{route('admin.users.update',$data->id)}}" method="post">
+            @method('PUT')
     <section class="content-header">
             <div class="container-fluid">
                 <div class="card">
@@ -21,7 +22,8 @@
                             <ol class="breadcrumb ">
                                 <li class="breadcrumb-item"><a href="#"> <small> หน้าหลัก</small></a></li>
                                 <li class="breadcrumb-item "> <small> ผู้ใช้งาน</small></li>
-                                <li class="breadcrumb-item active"> <small> สร้าง</small></li>
+                                <li class="breadcrumb-item active"> <small> แก้ไข</small></li>
+                                <li class="breadcrumb-item active"> <small> {{$data->id}}</small></li>
                             </ol>
 
                         </div>
@@ -31,7 +33,7 @@
                             <button type="submit" class="btn  bg-success" >
                                 <i class="fas fa-save"></i> บันทึก
                             </button>
-                            <a class="btn  bg-danger" href="{{route('ta-admin.users.index')}}">
+                            <a class="btn  bg-danger" href="{{route('admin.users.index')}}">
                                 <i class="fas fa-trash-alt"></i> ยกเลิก
                             </a>
                         </div>
@@ -51,10 +53,10 @@
                 </div>
                 <div class="row">
                     <div class="col-md-6">
-                       @include('ta-admin.user.form-component.info')
+                       @include('admin.user.form-component.info')
                     </div>
                     <div class="col-md-6">
-                        @include('ta-admin.user.form-component.auth')
+                        @include('admin.user.form-component.auth')
                     </div>
 
                 </div>
@@ -97,7 +99,7 @@
 				scrollTop: 0
 			}, "fast");
             setTimeout(() => {
-                window.location.href = "{{route('ta-admin.users.index')}}";
+                window.location.href = "{{route('admin.users.index')}}";
             }, 2000);
     })
 </script>

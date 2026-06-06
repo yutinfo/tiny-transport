@@ -13,7 +13,7 @@ class ReportController extends Controller
      */
     public function index()
     {
-        return view('ta-admin.report');
+        return view('admin.report');
     }
 
     /**

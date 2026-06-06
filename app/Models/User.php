@@ -76,4 +76,9 @@ class User extends Authenticatable
     {
         $this->attributes['password'] = bcrypt($value);
     }
+
+    public function assignedTrips()
+    {
+        return $this->hasMany(Trip::class, 'driver_user_id');
+    }
 }

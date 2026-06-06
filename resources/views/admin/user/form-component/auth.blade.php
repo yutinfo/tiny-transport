@@ -25,12 +25,15 @@
                     <!-- text input -->
                     <div class="form-group">
                         <label for="role_name">บทบาท</label>
-                       <select name="role_name" id="role_name" class="form-control">
-                        <option value="">-- เลือก --</option>
-                           <option  @isset($data->role_name) {{$data->role_name=='admin'?'selected':''}} @endif value="admin">ผู้ดูแลระบบ</option>
-                           <option  @isset($data->role_name) {{$data->role_name=='staff'?'selected':''}} @endif value="staff">พนักงาน</option>
-
-                       </select>
+                        <select name="role_name" id="role_name" class="form-control">
+                            <option value="">-- เลือก --</option>
+                            @php($roleLabels = \App\Models\User::roleLabels())
+                            @foreach($roleLabels as $roleValue => $roleLabel)
+                                <option value="{{ $roleValue }}" @isset($data->role_name) {{ $data->role_name === $roleValue ? 'selected' : '' }} @endif>
+                                    {{ $roleLabel }}
+                                </option>
+                            @endforeach
+                        </select>
                     </div>
                 </div>
                 <div class="col-sm-6">

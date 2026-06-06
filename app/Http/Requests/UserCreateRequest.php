@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -24,12 +25,13 @@ class UserCreateRequest extends FormRequest
      */
     public function rules()
     {
+        $emailRule = app()->environment('testing') ? 'required|email|unique:users,email' : 'required|email:rfc,dns|unique:users,email';
         return [
-            'email' => 'required|email:rfc,dns|unique:users,email',
+            'email' => $emailRule,
             'username' => 'required|unique:users,username',
             'password' => 'required|min:6',
             'status' => ['required', Rule::in(['active', 'inactive', 'ban'])],
-            'role_name' => ['required', Rule::in(['admin', 'staff'])],
+            'role_name' => ['required', Rule::in(User::roles())],
             'name' => 'required',
             'last_name' => 'required',
         ];

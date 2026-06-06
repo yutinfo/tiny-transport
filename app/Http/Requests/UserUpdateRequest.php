@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -27,7 +28,7 @@ class UserUpdateRequest extends FormRequest
         $rule = [
 
             'status' => ['required', Rule::in(['active', 'inactive', 'ban'])],
-            'role_name' => ['required', Rule::in(['admin', 'staff'])],
+            'role_name' => ['required', Rule::in(User::roles())],
             'name' => 'required',
             'last_name' => 'required',
         ];

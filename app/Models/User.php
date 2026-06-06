@@ -12,6 +12,43 @@ class User extends Authenticatable
 {
     use HasApiTokens;
 
+    public const ROLE_ADMIN = 'admin';
+    public const ROLE_STAFF = 'staff';
+    public const ROLE_DRIVER = 'driver';
+
+    public static function roles(): array
+    {
+        return [
+            self::ROLE_ADMIN,
+            self::ROLE_STAFF,
+            self::ROLE_DRIVER,
+        ];
+    }
+
+    public static function roleLabels(): array
+    {
+        return [
+            self::ROLE_ADMIN => 'ผู้ดูแลระบบ',
+            self::ROLE_STAFF => 'พนักงาน',
+            self::ROLE_DRIVER => 'คนขับรถ',
+        ];
+    }
+
+    public function isAdmin(): bool
+    {
+        return $this->role_name === self::ROLE_ADMIN;
+    }
+
+    public function isStaff(): bool
+    {
+        return $this->role_name === self::ROLE_STAFF;
+    }
+
+    public function isDriver(): bool
+    {
+        return $this->role_name === self::ROLE_DRIVER;
+    }
+
     protected $table = 'users';
 
     protected $dates = [

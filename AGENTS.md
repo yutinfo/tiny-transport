@@ -12,11 +12,19 @@ Guidance for Codex and other AI agents working in this repository.
 ## Working Rules
 
 - Read this file before making changes.
+- For Codex-specific workflows, also read `CODEX.md` and the relevant files under `.codex/`. These files supplement this `AGENTS.md`; they do not override repository rules here.
 - Keep changes scoped to the user's request. Do not perform broad rewrites, framework swaps, or dependency upgrades unless explicitly requested.
 - Preserve existing Laravel, Blade, Bootstrap/AdminLTE, Sass, and jQuery patterns unless there is a clear local reason to adjust them.
 - Do not revert or overwrite unrelated work in the git tree. Treat existing uncommitted changes as user work.
 - Prefer small, reviewable commits. Include this file in commits so team guidance travels with the project.
 - Avoid changing generated assets in `public/css`, `public/js`, or `public/mix-manifest.json` by hand. Update source files and rebuild when asset output is needed.
+
+## AI Workflow Files
+
+- `CODEX.md` is the Codex usage guide for this repository.
+- `.codex/project-context.md`, `.codex/conventions.md`, and `.codex/guardrails.md` provide reusable project context and safety rules.
+- `.codex/workflows/` contains task workflows for feature development, bug fixes, database changes, UI modernization, driver portal changes, code review, and validation.
+- `.codex/agents/`, `.codex/skills/`, `.codex/prompts/`, and `.codex/examples/` provide reusable role guides, checklists, prompt templates, and examples.
 
 ## Commands
 

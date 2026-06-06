@@ -89,8 +89,157 @@ $(function() {
 
 	});
 
+    bindEditContactSearch();
+
 
 });
+
+function editContactEscapeHtml(value) {
+    return String(value || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
+function editContactTypeLabel(type) {
+    const labels = {
+        sender: 'ผู้ส่ง',
+        receiver: 'ผู้รับ',
+        both: 'ผู้ส่ง/ผู้รับ',
+    };
+
+    return labels[type] || type || '';
+}
+
+function editContactSuggestionList(field) {
+    const formGroup = field.closest('.form-group');
+    let list = formGroup.find('.js-edit-contact-suggestion-list');
+
+    if (!list.length) {
+        formGroup.css('position', 'relative');
+        list = $('<div class="list-group shadow-sm js-edit-contact-suggestion-list" style="display:none; position:absolute; left:0; right:0; z-index:1050; max-height:260px; overflow:auto;"></div>');
+        formGroup.append(list);
+    }
+
+    return list;
+}
+
+function appendEditOption(select, value, label) {
+    if (!value) {
+        return;
+    }
+
+    if (select.find('option[value="' + value + '"]').length === 0) {
+        select.append('<option value="' + editContactEscapeHtml(value) + '">' + editContactEscapeHtml(label || value) + '</option>');
+    }
+
+    select.val(value).trigger('change.select2');
+}
+
+function fillEditContact(field, contact) {
+    const contactType = field.data('contact-type');
+    const receiverId = field.data('receiver-id');
+
+    if (contactType === 'sender') {
+        $('#sender_name').val(contact.name || '');
+        $('#sender_mobile').val(contact.mobile || '');
+        $('#sender_address').val(contact.address || '');
+        $('#sender_zip_code').val(contact.zip_code || '');
+        appendEditOption($('#sender_province'), contact.province_name, contact.province_name);
+        appendEditOption($('#sender_amphure'), contact.amphure_name, contact.amphure_name);
+        appendEditOption($('#sender_district'), contact.district_name, contact.district_name);
+        field.val([contact.name, contact.mobile].filter(Boolean).join(' - '));
+        return;
+    }
+
+    $('#receive_name' + receiverId).val(contact.name || '');
+    $('#receive_mobile' + receiverId).val(contact.mobile || '');
+    $('#receive_address' + receiverId).val(contact.address || '');
+    $('#receive_zip_code' + receiverId).val(contact.zip_code || '');
+    appendEditOption($('#receive_province' + receiverId), contact.province_name, contact.province_name);
+    appendEditOption($('#receive_amphure' + receiverId), contact.amphure_name, contact.amphure_name);
+    appendEditOption($('#receive_district' + receiverId), contact.district_name, contact.district_name);
+    field.val([contact.name, contact.mobile].filter(Boolean).join(' - '));
+}
+
+function renderEditContactSuggestions(field, contacts, keyword) {
+    const list = editContactSuggestionList(field);
+    list.html('');
+
+    if (!contacts.length) {
+        list.hide();
+        return;
+    }
+
+    contacts.forEach(function(contact) {
+        const item = $(
+            '<button type="button" class="list-group-item list-group-item-action text-left">' +
+                '<div class="d-flex justify-content-between align-items-center">' +
+                    '<strong>' + editContactEscapeHtml(contact.name) + '</strong>' +
+                    '<span class="badge badge-light">' + editContactEscapeHtml(editContactTypeLabel(contact.type)) + '</span>' +
+                '</div>' +
+                '<div class="small text-muted">' + editContactEscapeHtml(contact.mobile) + '</div>' +
+            '</button>'
+        );
+
+        item.on('mousedown', function(event) {
+            event.preventDefault();
+            fillEditContact(field, contact);
+            list.hide().html('');
+        });
+
+        list.append(item);
+    });
+
+    list.show();
+}
+
+function bindEditContactSearch() {
+    let timer = null;
+
+    $('.js-edit-contact-search').on('input', function() {
+        const field = $(this);
+        const keyword = $.trim(field.val() || '');
+
+        clearTimeout(timer);
+
+        if (keyword.length < 2) {
+            editContactSuggestionList(field).hide().html('');
+            return;
+        }
+
+        timer = setTimeout(function() {
+            $.ajax({
+                url: "{{ route('admin.api.contacts.search') }}",
+                method: 'GET',
+                dataType: 'JSON',
+                data: {
+                    type: field.data('contact-type'),
+                    q: keyword,
+                },
+                success: function(response) {
+                    if ($.trim(field.val() || '') !== keyword) {
+                        return;
+                    }
+
+                    renderEditContactSuggestions(field, response.data || [], keyword);
+                },
+                error: function() {
+                    editContactSuggestionList(field).hide().html('');
+                }
+            });
+        }, 300);
+    });
+
+    $('.js-edit-contact-search').on('blur', function() {
+        const field = $(this);
+        setTimeout(function() {
+            editContactSuggestionList(field).hide().html('');
+        }, 180);
+    });
+}
 
 
 

@@ -122,6 +122,180 @@
 
         </div>
 
+        <div class="card">
+            <div class="card-header">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h3 class="card-title">KPI การขนส่ง</h3>
+                    </div>
+                    <div class="col-md-6 text-right">
+                        <a href="{{ route('admin.trips.export.csv', request()->only(['date_from', 'date_to', 'driver_name', 'status'])) }}" class="btn bg-success btn-sm">
+                            <i class="fas fa-file-csv"></i> ส่งออก CSV
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <form action="{{ route('admin.dashboard') }}" method="GET">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label for="date_from">วันที่เริ่ม</label>
+                                <input type="date" name="date_from" id="date_from" value="{{ $operationFilters['date_from'] }}" class="form-control">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label for="date_to">วันที่สิ้นสุด</label>
+                                <input type="date" name="date_to" id="date_to" value="{{ $operationFilters['date_to'] }}" class="form-control">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label for="driver_name">พนักงานขับรถ</label>
+                                <input type="text" name="driver_name" id="driver_name" value="{{ $operationFilters['driver_name'] }}" class="form-control">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label for="status">สถานะรอบ</label>
+                                <select name="status" id="status" class="form-control">
+                                    <option value="">ทั้งหมด</option>
+                                    @foreach($tripStatusLabels as $status => $label)
+                                        <option value="{{ $status }}" {{ $operationFilters['status'] === $status ? 'selected' : '' }}>{{ $label }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn bg-info"><i class="fas fa-search"></i> ค้นหา</button>
+                    <a href="{{ route('admin.dashboard') }}" class="btn bg-secondary"><i class="fas fa-redo"></i> ล้าง</a>
+                </div>
+            </form>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-3 col-md-4 col-6">
+                <div class="small-box bg-info"><div class="inner"><h3>{{ number_format($operationKpis['trips_count']) }}</h3><p>รอบขนส่ง</p></div><div class="icon"><i class="fas fa-truck"></i></div></div>
+            </div>
+            <div class="col-lg-3 col-md-4 col-6">
+                <div class="small-box bg-primary"><div class="inner"><h3>{{ number_format($operationKpis['assigned_count']) }}</h3><p>พัสดุเข้ารอบ</p></div><div class="icon"><i class="fas fa-boxes"></i></div></div>
+            </div>
+            <div class="col-lg-3 col-md-4 col-6">
+                <div class="small-box bg-success"><div class="inner"><h3>{{ number_format($operationKpis['delivered_count']) }}</h3><p>ส่งสำเร็จ</p></div><div class="icon"><i class="fas fa-check"></i></div></div>
+            </div>
+            <div class="col-lg-3 col-md-4 col-6">
+                <div class="small-box bg-danger"><div class="inner"><h3>{{ number_format($operationKpis['failed_count']) }}</h3><p>ส่งไม่สำเร็จ</p></div><div class="icon"><i class="fas fa-times"></i></div></div>
+            </div>
+            <div class="col-lg-3 col-md-4 col-6">
+                <div class="small-box bg-warning"><div class="inner"><h3>{{ number_format($operationKpis['returned_count']) }}</h3><p>ตีกลับ</p></div><div class="icon"><i class="fas fa-undo"></i></div></div>
+            </div>
+            <div class="col-lg-3 col-md-4 col-6">
+                <div class="small-box bg-secondary"><div class="inner"><h3>{{ number_format($operationKpis['waiting_transit_count']) }}</h3><p>รอ/กำลังจัดส่ง</p></div><div class="icon"><i class="fas fa-clock"></i></div></div>
+            </div>
+            <div class="col-lg-3 col-md-4 col-6">
+                <div class="small-box bg-teal"><div class="inner"><h3>{{ number_format($operationKpis['remaining_cod_amount'], 2) }}</h3><p>ยอด COD คงเหลือ</p></div><div class="icon"><i class="fas fa-wallet"></i></div></div>
+            </div>
+            <div class="col-lg-3 col-md-4 col-6">
+                <div class="small-box bg-dark"><div class="inner"><h3>{{ number_format($operationKpis['delivery_success_rate'], 2) }}%</h3><p>อัตราส่งสำเร็จ</p></div><div class="icon"><i class="fas fa-percentage"></i></div></div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-4">
+                <div class="card">
+                    <div class="card-header"><h3 class="card-title">สถานะจัดส่ง</h3></div>
+                    <div class="card-body p-0">
+                        <table class="table table-sm table-bordered mb-0">
+                            <tbody>
+                                @foreach($deliveryStatusLabels as $status => $label)
+                                    <tr>
+                                        <td>{{ $label }}</td>
+                                        <td class="text-right">{{ number_format($deliveryBreakdown[$status] ?? 0) }}</td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="card">
+                    <div class="card-header"><h3 class="card-title">สรุป COD</h3></div>
+                    <div class="card-body p-0">
+                        <table class="table table-sm table-bordered mb-0">
+                            <tbody>
+                                <tr><td>ยอด COD รวม</td><td class="text-right">{{ number_format($codSummary['total_cod_amount'], 2) }}</td></tr>
+                                <tr><td>ยอดเก็บแล้ว</td><td class="text-right">{{ number_format($codSummary['collected_amount'], 2) }}</td></tr>
+                                <tr><td>ยอด COD คงเหลือ</td><td class="text-right">{{ number_format($codSummary['remaining_cod_amount'], 2) }}</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="card">
+                    <div class="card-header"><h3 class="card-title">รอบขนส่งตามสถานะ</h3></div>
+                    <div class="card-body p-0">
+                        <table class="table table-sm table-bordered mb-0">
+                            <tbody>
+                                @foreach($tripStatusLabels as $status => $label)
+                                    <tr>
+                                        <td>{{ $label }}</td>
+                                        <td class="text-right">{{ number_format($tripsByStatus[$status] ?? 0) }}</td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header"><h3 class="card-title">รอบขนส่งล่าสุด</h3></div>
+            <div class="card-body p-0 table-responsive">
+                <table class="table table-striped table-bordered table-sm mb-0">
+                    <thead>
+                        <tr>
+                            <th>วันที่</th>
+                            <th>รหัสรอบ</th>
+                            <th>พนักงานขับรถ</th>
+                            <th>ทะเบียนรถ</th>
+                            <th>พัสดุ</th>
+                            <th>ส่งสำเร็จ/ไม่สำเร็จ/คงเหลือ</th>
+                            <th class="text-right">เก็บ COD</th>
+                            <th>สถานะ</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($recentTrips as $trip)
+                            @php
+                                $delivered = $trip->tripItems->where('delivery_status', \App\Models\TripItem::DELIVERY_STATUS_DELIVERED)->count();
+                                $failed = $trip->tripItems->where('delivery_status', \App\Models\TripItem::DELIVERY_STATUS_FAILED)->count();
+                                $returned = $trip->tripItems->where('delivery_status', \App\Models\TripItem::DELIVERY_STATUS_RETURNED)->count();
+                                $remaining = max(0, $trip->tripItems->count() - $delivered - $failed - $returned);
+                            @endphp
+                            <tr>
+                                <td>{{ optional($trip->trip_date)->format('Y-m-d') }}</td>
+                                <td>{{ $trip->code }}</td>
+                                <td>{{ $trip->driver_name ?: '-' }}</td>
+                                <td>{{ $trip->car_id ?: '-' }}</td>
+                                <td>{{ number_format($trip->tripItems->count()) }}</td>
+                                <td>{{ number_format($delivered) }} / {{ number_format($failed) }} / {{ number_format($remaining) }}</td>
+                                <td class="text-right">{{ number_format($trip->collected_amount, 2) }}</td>
+                                <td><span class="badge badge-info">{{ $trip->status_label }}</span></td>
+                                <td class="text-right"><a href="{{ route('admin.trips.show', $trip) }}" class="btn bg-primary btn-xs"><i class="fas fa-eye"></i> ดู</a></td>
+                            </tr>
+                        @empty
+                            <tr><td colspan="9" class="text-center text-muted">ไม่พบรอบขนส่งในช่วงวันที่เลือก</td></tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
         <div class="row">
             <div class="col-md-12">
                 <div class="card card-default">
@@ -134,6 +308,9 @@
                             <div class="col-sm-6 text-right">
                                 <form action="{{route('admin.dashboard')}}" method="GET"  id="generate_report">
                                     @csrf
+                                    @php
+                                        $legacySelected = $selected[0] ?? [];
+                                    @endphp
                                 <div class="col-sm-12 text-right">
                                     <div class="row">
 
@@ -143,14 +320,7 @@
                                         <select class="form-control" id="select_province" name="select_province">
                                             <option value="">เลือกจังหวัด</option>
                                             @foreach ($province as $item)
-                                            @if(count($selected[0])>1)
-
-                                            <option {{$item['id']==$selected[0]['select_province']?'selected':""}} value="{{$item['id']}}">{{$item['name_th']}}</option>
-                                            @else
-                                            <option value="{{$item['id']}}">{{$item['name_th']}}</option>
-                                            @endif
-
-
+                                            <option {{ $item['id'] == Arr::get($legacySelected, 'select_province') ? 'selected' : '' }} value="{{$item['id']}}">{{$item['name_th']}}</option>
 
                                             @endforeach
                                         </select>
@@ -164,13 +334,8 @@
                                                         <i class="far fa-calendar-alt"></i>
                                                     </span>
                                                 </div>
-                                                @if(count($selected[0])>=1)
-                                                <input type="hidden" name="db_date" value="{{$selected[0]['db_date']}}">
-                                                <input type="text" name="select_date" class="form-control float-right" id="select_date" value="{{$selected[0]['select_date']}}" placeholder="เลือกวัน">
-                                                @else
-                                                <input type="hidden" name="db_date" value="{{\Carbon\Carbon::now()->format("Y-m-d")}}">
-                                                <input type="text" name="select_date" class="form-control float-right" id="select_date" value="" placeholder="เลือกวัน">
-                                                @endif
+                                                <input type="hidden" name="db_date" value="{{ Arr::get($legacySelected, 'db_date', \Carbon\Carbon::now()->format('Y-m-d')) }}">
+                                                <input type="text" name="select_date" class="form-control float-right" id="select_date" value="{{ Arr::get($legacySelected, 'select_date', '') }}" placeholder="เลือกวัน">
 
                                                 <button class="btn bg-info ml-sm-2" id="view_report">
                                                     <i class="far fa-chart-bar"></i> ดูรายงาน

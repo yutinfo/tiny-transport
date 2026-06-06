@@ -100,7 +100,7 @@ class OrderController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'sender_name' => ['required', 'string', 'max:100'],
-            'sender_mobile' => ['required', 'string', 'max:10', 'regex:/^\d{9,10}$/'],
+            'sender_mobile' => ['required', 'string', 'max:20', 'regex:/^[\d\s()+-]+$/'],
             'sender_zip_code' => ['nullable', 'digits_between:5,10'],
             'driver_mobile' => ['nullable', 'string', 'max:10', 'regex:/^\d{9,10}$/'],
             'receivers' => ['nullable', 'array'],
@@ -119,6 +119,10 @@ class OrderController extends Controller
         ]);
 
         $validator->after(function ($validator) use ($request) {
+            if (! preg_match('/^\d{9,10}$/', $this->normalizeMobile($request->input('sender_mobile')))) {
+                $this->addValidationError($validator, '', 'sender_mobile', 'เบอร์โทรศัพท์ผู้ฝาก รูปแบบไม่ถูกต้อง');
+            }
+
             $queuedReceivers = $this->queuedReceiverPayloads($request);
             $currentReceiver = $request->only($this->receiverKeys());
             $hasCurrentReceiver = $this->hasReceiverPayload($currentReceiver);
@@ -210,7 +214,7 @@ class OrderController extends Controller
             }
         }
 
-        if (filled(Arr::get($receiver, 'receive_mobile')) && ! preg_match('/^\d{9,10}$/', Arr::get($receiver, 'receive_mobile'))) {
+        if (filled(Arr::get($receiver, 'receive_mobile')) && ! preg_match('/^\d{9,10}$/', $this->normalizeMobile(Arr::get($receiver, 'receive_mobile')))) {
             $this->addValidationError($validator, $prefix, 'receive_mobile', "{$groupLabel}: {$labels['receive_mobile']} รูปแบบไม่ถูกต้อง");
         }
 
@@ -274,10 +278,28 @@ class OrderController extends Controller
             return;
         }
 
-        $contact = Contact::firstOrNew([
-            'type' => $type,
-            'mobile' => $mobile,
-        ]);
+        $existingContacts = Contact::where('mobile', $mobile)->get();
+        $contact = $existingContacts->firstWhere('type', 'both')
+            ?: $existingContacts->firstWhere('type', $type);
+
+        if (! $contact) {
+            $contact = $existingContacts->first();
+
+            if ($contact) {
+                $contact->type = 'both';
+            }
+        }
+
+        if ($contact && $contact->type !== 'both' && $existingContacts->contains(fn ($existing) => ! in_array($existing->type, [$type, 'both'], true))) {
+            $contact->type = 'both';
+        }
+
+        if (! $contact) {
+            $contact = new Contact([
+                'type' => $type,
+                'mobile' => $mobile,
+            ]);
+        }
 
         if (! $contact->exists) {
             $contact->created_by = Auth::user()->name ?? null;
@@ -365,20 +387,36 @@ class OrderController extends Controller
 
     private function validateUpdateRequest(Request $request): void
     {
-        Validator::make($request->all(), [
+        $validator = Validator::make($request->all(), [
             'sender_name' => ['nullable', 'string', 'max:100'],
-            'sender_mobile' => ['nullable', 'string', 'max:10', 'regex:/^\d{9,10}$/'],
+            'sender_mobile' => ['nullable', 'string', 'max:20', 'regex:/^[\d\s()+-]+$/'],
             'sender_zip_code' => ['nullable', 'digits_between:5,10'],
             'driver_mobile' => ['nullable', 'string', 'max:10', 'regex:/^\d{9,10}$/'],
             'receive_mobile' => ['nullable', 'array'],
-            'receive_mobile.*.*' => ['nullable', 'string', 'max:15', 'regex:/^\d{9,10}$/'],
+            'receive_mobile.*.*' => ['nullable', 'string', 'max:20', 'regex:/^[\d\s()+-]+$/'],
             'receive_zip_code' => ['nullable', 'array'],
             'receive_zip_code.*.*' => ['nullable', 'digits_between:5,10'],
             'parcel_pice' => ['nullable', 'array'],
             'parcel_pice.*.*' => ['nullable', 'numeric', 'min:0.01'],
             'payment_type' => ['nullable', 'array'],
             'payment_type.*.*' => ['nullable', 'in:1,2'],
-        ])->validate();
+        ]);
+
+        $validator->after(function ($validator) use ($request) {
+            if (filled($request->input('sender_mobile')) && ! preg_match('/^\d{9,10}$/', $this->normalizeMobile($request->input('sender_mobile')))) {
+                $this->addValidationError($validator, '', 'sender_mobile', 'เบอร์โทรศัพท์ผู้ฝาก รูปแบบไม่ถูกต้อง');
+            }
+
+            foreach ((array) $request->input('receive_mobile', []) as $receiverId => $values) {
+                foreach ((array) $values as $index => $mobile) {
+                    if (filled($mobile) && ! preg_match('/^\d{9,10}$/', $this->normalizeMobile($mobile))) {
+                        $this->addValidationError($validator, '', "receive_mobile.{$receiverId}.{$index}", 'เบอร์โทรศัพท์ผู้รับ รูปแบบไม่ถูกต้อง');
+                    }
+                }
+            }
+        });
+
+        $validator->validate();
     }
 
     /**
@@ -436,7 +474,7 @@ class OrderController extends Controller
         $response_sender = [
             "code" => self::generateOrderCode(),
             "customer_name" => $sender["sender_name"] ?? "",
-            "customer_mobile" => $sender["sender_mobile"] ?? "",
+            "customer_mobile" => $this->normalizeMobile($sender["sender_mobile"] ?? ""),
             "customer_address" => $sender["sender_address"] ?? "",
             "province_name" => $sender["sender_province_text"] ?? "",
             "amphures_name" => $sender["sender_amphure_text"] ?? "",
@@ -453,7 +491,7 @@ class OrderController extends Controller
         ];
         $response_sender_contact = [
             "name" => $sender["sender_name"] ?? "",
-            "mobile" => $sender["sender_mobile"] ?? "",
+            "mobile" => $this->normalizeMobile($sender["sender_mobile"] ?? ""),
             "address" => $sender["sender_address"] ?? "",
             "province_id" => $sender["sender_province"] ?? null,
             "amphure_id" => $sender["sender_amphure"] ?? null,
@@ -469,7 +507,7 @@ class OrderController extends Controller
                 "parcel_code" => self::generateParcelCode(),
                 "parcel_description" => $receiver['parcel_description'] ?? null,
                 "receive_name" => $receiver['receive_name'] ?? null,
-                "receive_mobile" => $receiver['receive_mobile'] ?? null,
+                "receive_mobile" => $this->normalizeMobile($receiver['receive_mobile'] ?? ''),
                 "receive_address" => $receiver['receive_address'] ?? null,
                 "province_id" => $receiver['receive_province'] ?? null,
                 "amphures_id" => $receiver['receive_amphure'] ?? null,
@@ -594,7 +632,7 @@ class OrderController extends Controller
             $response_sender["customer_name"] = $sender["sender_name"];
         }
         if (Arr::get($sender, "sender_mobile")) {
-            $response_sender["customer_mobile"] = $sender["sender_mobile"];
+            $response_sender["customer_mobile"] = $this->normalizeMobile($sender["sender_mobile"]);
         }
         if (Arr::get($sender, "sender_address")) {
             $response_sender["customer_address"] = $sender["sender_address"];
@@ -631,7 +669,7 @@ class OrderController extends Controller
                 "id" => $key,
                 "parcel_description" => $receiver['parcel_description'] ?? null,
                 "receive_name" => $receiver['receive_name'] ?? null,
-                "receive_mobile" => $receiver['receive_mobile'] ?? null,
+                "receive_mobile" => $this->normalizeMobile($receiver['receive_mobile'] ?? ''),
                 "receive_address" => $receiver['receive_address'] ?? null,
                 "parcel_pickup_type" => (Arr::get($receiver, "pickup_type", 0) == "1") ? "pickup" : "delivery",
                 "payment_type" => (Arr::get($receiver, 'payment_type', "1") == "1") ? "immediately" : "on_delivery",
@@ -662,5 +700,10 @@ class OrderController extends Controller
             'sender' => $response_sender,
             'receivers' => $response_receivers,
         ];
+    }
+
+    private function normalizeMobile(?string $mobile): string
+    {
+        return preg_replace('/\D/', '', (string) $mobile) ?: '';
     }
 }

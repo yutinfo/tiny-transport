@@ -86,6 +86,10 @@ class ContactController extends Controller
 
     private function validatedData(Request $request, ?int $ignoreId = null): array
     {
+        $request->merge([
+            'mobile' => preg_replace('/\D/', '', (string) $request->mobile),
+        ]);
+
         $mobileUniqueRule = Rule::unique('contacts')
             ->where(fn ($query) => $query->where('type', $request->type));
 

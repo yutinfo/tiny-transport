@@ -157,6 +157,8 @@
                                     <td>{{$value["parcel_pickup_type"]}}</td>
                                     <td>
                                         <a class="btn  bg-info btn-xs" href="{{route('admin.orders.edit',$value["order_id"])}}"><i class="fas fa-edit"></i> แก้ไข </a>
+                                        <a class="btn bg-dark btn-xs" href="{{ route('admin.orders.labels', $value['order_id']) }}"><i class="fas fa-qrcode"></i> Label</a>
+                                        <a class="btn bg-secondary btn-xs" href="{{ route('admin.parcels.tracking', $value['order_receive_id']) }}"><i class="fas fa-history"></i> ดูประวัติ</a>
                                         <button type="button" class="btn bg-danger btn-xs" onclick="dt('{{$value['order_receive_id']}}','{{$value['customer_name']}}')"><i class="fas fa-trash-alt"></i> ลบ</button>
                                 </td>
                                 </tr>

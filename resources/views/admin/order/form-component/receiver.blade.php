@@ -8,6 +8,15 @@
     <div class="card-body">
 
             <div class="row">
+                <div class="col-sm-12">
+                    <div class="form-group">
+                        <label for="receiver_contact_search">ค้นหาผู้รับเดิม</label>
+                        <input id="receiver_contact_search" type="text" class="form-control js-contact-search" data-contact-type="receiver" placeholder="ค้นหาชื่อหรือเบอร์โทร">
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
                 <div class="col-sm-6">
                     <!-- text input -->
                     <div class="form-group">

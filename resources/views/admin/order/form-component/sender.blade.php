@@ -7,6 +7,15 @@
     <div class="card-body">
 
             <div class="row">
+                <div class="col-sm-12">
+                    <div class="form-group">
+                        <label for="sender_contact_search">ค้นหาผู้ฝากเดิม</label>
+                        <input id="sender_contact_search" type="text" class="form-control js-contact-search" data-contact-type="sender" placeholder="ค้นหาชื่อหรือเบอร์โทร">
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
                 <div class="col-sm-6">
                     <!-- text input -->
                     <div class="form-group">

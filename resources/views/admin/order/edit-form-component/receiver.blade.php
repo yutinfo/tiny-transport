@@ -1,11 +1,21 @@
 <div class="card card-danger">
     <div class="card-header">
         <h3 class="card-title">ข้อมูลพัสดุและผู้รับ</h3>
-
+        <div class="card-tools">
+            <a href="{{ route('admin.parcels.tracking', $data_item) }}" class="btn bg-secondary btn-xs"><i class="fas fa-history"></i> ดูประวัติ</a>
+        </div>
     </div>
     <!-- /.card-header -->
 
     <div class="card-body">
+            <div class="row">
+                <div class="col-sm-12">
+                    <div class="form-group">
+                        <label for="edit_receiver_contact_search{{$data_item->id}}">ค้นหาผู้รับเดิม</label>
+                        <input id="edit_receiver_contact_search{{$data_item->id}}" type="text" class="form-control js-edit-contact-search" data-contact-type="receiver" data-receiver-id="{{$data_item->id}}" placeholder="ค้นหาชื่อหรือเบอร์โทร">
+                    </div>
+                </div>
+            </div>
             <div class="row">
                 <div class="col-sm-6">
                     <!-- text input -->

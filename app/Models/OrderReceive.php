@@ -73,4 +73,14 @@ class OrderReceive extends Model
     {
         return $this->belongsTo(Order::class);
     }
+
+    public function tripItems()
+    {
+        return $this->hasMany(TripItem::class);
+    }
+
+    public function statusLogs()
+    {
+        return $this->hasMany(ParcelStatusLog::class);
+    }
 }

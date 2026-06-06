@@ -26,4 +26,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/order', [App\Http\Controllers\Api\OrderController::class, 'index'])->name('api.order.index');
     Route::get('/contacts/suggest', [App\Http\Controllers\Api\ContactController::class, 'suggest'])->name('api.contacts.suggest');
     Route::get('/contacts/search', [App\Http\Controllers\Api\ContactController::class, 'search'])->name('api.contacts.search');
+    Route::get('/trips', [App\Http\Controllers\Api\TripController::class, 'index'])->name('api.trips.index');
+    Route::get('/trips/{trip}', [App\Http\Controllers\Api\TripController::class, 'show'])->name('api.trips.show');
+    Route::get('/trips/{trip}/items', [App\Http\Controllers\Api\TripController::class, 'items'])->name('api.trips.items');
+    Route::post('/trip-items/{tripItem}/delivery-status', [App\Http\Controllers\Api\TripController::class, 'updateDeliveryStatus'])->name('api.trip-items.delivery-status');
+    Route::post('/trip-items/{tripItem}/payment-status', [App\Http\Controllers\Api\TripController::class, 'updatePaymentStatus'])->name('api.trip-items.payment-status');
+    Route::get('/parcels/{parcelCode}', [App\Http\Controllers\Api\TripController::class, 'parcel'])->name('api.parcels.show');
 });

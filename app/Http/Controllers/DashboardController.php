@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Order;
 use App\Models\Province;
+use App\Models\Trip;
+use App\Models\TripItem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Arr;
@@ -20,11 +22,21 @@ class DashboardController extends Controller
      */
     public function index(Request $request)
     {
+        $request->validate([
+            'date_from' => ['nullable', 'date'],
+            'date_to' => ['nullable', 'date'],
+            'driver_name' => ['nullable', 'string', 'max:100'],
+            'status' => ['nullable', 'in:' . implode(',', Trip::statuses())],
+        ]);
+
+        $operationFilters = $this->operationFilters($request);
+        $operationData = $this->operationDashboardData($operationFilters);
+
         $orders = DB::table('order_receives')
         ->select(
             DB::raw("count(id) as 'count_id', SUM(parcel_pice) as 'sum_parcel_pice'"),
-            DB::raw("SUM(IF(payment_type = 'on_delivery', parcel_pice, 0)) as parcel_pice_on_delivery"),
-            DB::raw("SUM(IF(payment_type = 'immediately' , parcel_pice, 0)) as parcel_pice_immediately")
+            DB::raw("SUM(CASE WHEN payment_type = 'on_delivery' THEN parcel_pice ELSE 0 END) as parcel_pice_on_delivery"),
+            DB::raw("SUM(CASE WHEN payment_type = 'immediately' THEN parcel_pice ELSE 0 END) as parcel_pice_immediately")
         )
         ->get()
         ->toArray();
@@ -80,6 +92,14 @@ class DashboardController extends Controller
             'selected' =>[
                 $request->all()??""
             ],
+            'operationFilters' => $operationFilters,
+            'operationKpis' => $operationData['kpis'],
+            'deliveryBreakdown' => $operationData['delivery_breakdown'],
+            'codSummary' => $operationData['cod_summary'],
+            'tripsByStatus' => $operationData['trips_by_status'],
+            'recentTrips' => $operationData['recent_trips'],
+            'tripStatusLabels' => Trip::statusLabels(),
+            'deliveryStatusLabels' => TripItem::deliveryStatusLabels(),
         ]);
     }
 
@@ -189,5 +209,133 @@ class DashboardController extends Controller
 
         }
         return $data_set;
+    }
+
+    private function operationFilters(Request $request): array
+    {
+        $dateFrom = $request->input('date_from') ?: Carbon::now()->toDateString();
+        $dateTo = $request->input('date_to') ?: $dateFrom;
+
+        if (Carbon::parse($dateTo)->lt(Carbon::parse($dateFrom))) {
+            $dateTo = $dateFrom;
+        }
+
+        return [
+            'date_from' => $dateFrom,
+            'date_to' => $dateTo,
+            'driver_name' => trim((string) $request->input('driver_name', '')),
+            'status' => $request->input('status'),
+        ];
+    }
+
+    private function operationDashboardData(array $filters): array
+    {
+        $tripQuery = $this->filteredTripQuery($filters);
+        $itemQuery = $this->filteredTripItemQuery($filters);
+
+        $tripSummary = (clone $tripQuery)
+            ->selectRaw('COUNT(*) as trips_count')
+            ->first();
+
+        $itemSummary = (clone $itemQuery)
+            ->selectRaw(
+                'COUNT(*) as assigned_count,
+                COALESCE(SUM(CASE WHEN delivery_status = ? THEN 1 ELSE 0 END), 0) as delivered_count,
+                COALESCE(SUM(CASE WHEN delivery_status = ? THEN 1 ELSE 0 END), 0) as failed_count,
+                COALESCE(SUM(CASE WHEN delivery_status = ? THEN 1 ELSE 0 END), 0) as returned_count,
+                COALESCE(SUM(CASE WHEN delivery_status IN (?, ?, ?) THEN 1 ELSE 0 END), 0) as waiting_transit_count,
+                COALESCE(SUM(cod_amount), 0) as total_cod_amount,
+                COALESCE(SUM(collected_amount), 0) as collected_amount',
+                [
+                    TripItem::DELIVERY_STATUS_DELIVERED,
+                    TripItem::DELIVERY_STATUS_FAILED,
+                    TripItem::DELIVERY_STATUS_RETURNED,
+                    TripItem::DELIVERY_STATUS_WAITING,
+                    TripItem::DELIVERY_STATUS_PICKED_UP,
+                    TripItem::DELIVERY_STATUS_IN_TRANSIT,
+                ]
+            )
+            ->first();
+
+        $assignedCount = (int) ($itemSummary->assigned_count ?? 0);
+        $deliveredCount = (int) ($itemSummary->delivered_count ?? 0);
+        $totalCodAmount = (float) ($itemSummary->total_cod_amount ?? 0);
+        $collectedAmount = (float) ($itemSummary->collected_amount ?? 0);
+
+        $deliveryBreakdown = (clone $itemQuery)
+            ->select('delivery_status', DB::raw('COUNT(*) as total'))
+            ->groupBy('delivery_status')
+            ->pluck('total', 'delivery_status')
+            ->toArray();
+
+        $tripsByStatus = (clone $tripQuery)
+            ->select('status', DB::raw('COUNT(*) as total'))
+            ->groupBy('status')
+            ->pluck('total', 'status')
+            ->toArray();
+
+        $recentTrips = (clone $tripQuery)
+            ->with('tripItems')
+            ->orderByDesc('trip_date')
+            ->orderByDesc('id')
+            ->limit(10)
+            ->get();
+
+        return [
+            'kpis' => [
+                'trips_count' => (int) ($tripSummary->trips_count ?? 0),
+                'assigned_count' => $assignedCount,
+                'delivered_count' => $deliveredCount,
+                'failed_count' => (int) ($itemSummary->failed_count ?? 0),
+                'returned_count' => (int) ($itemSummary->returned_count ?? 0),
+                'waiting_transit_count' => (int) ($itemSummary->waiting_transit_count ?? 0),
+                'total_cod_amount' => $totalCodAmount,
+                'collected_amount' => $collectedAmount,
+                'remaining_cod_amount' => max(0, $totalCodAmount - $collectedAmount),
+                'delivery_success_rate' => $assignedCount > 0 ? round(($deliveredCount / $assignedCount) * 100, 2) : 0,
+            ],
+            'delivery_breakdown' => $deliveryBreakdown,
+            'cod_summary' => [
+                'total_cod_amount' => $totalCodAmount,
+                'collected_amount' => $collectedAmount,
+                'remaining_cod_amount' => max(0, $totalCodAmount - $collectedAmount),
+            ],
+            'trips_by_status' => $tripsByStatus,
+            'recent_trips' => $recentTrips,
+        ];
+    }
+
+    private function filteredTripQuery(array $filters)
+    {
+        $query = Trip::query()
+            ->whereDate('trip_date', '>=', $filters['date_from'])
+            ->whereDate('trip_date', '<=', $filters['date_to']);
+
+        if (! blank($filters['driver_name'])) {
+            $query->where('driver_name', 'like', '%' . $filters['driver_name'] . '%');
+        }
+
+        if (! blank($filters['status'])) {
+            $query->where('status', $filters['status']);
+        }
+
+        return $query;
+    }
+
+    private function filteredTripItemQuery(array $filters)
+    {
+        return TripItem::query()
+            ->whereHas('trip', function ($query) use ($filters) {
+                $query->whereDate('trip_date', '>=', $filters['date_from'])
+                    ->whereDate('trip_date', '<=', $filters['date_to']);
+
+                if (! blank($filters['driver_name'])) {
+                    $query->where('driver_name', 'like', '%' . $filters['driver_name'] . '%');
+                }
+
+                if (! blank($filters['status'])) {
+                    $query->where('status', $filters['status']);
+                }
+            });
     }
 }

@@ -27,6 +27,18 @@ $role_name = Auth::user()->role_name;
         <p>ข้อมูลผู้ส่ง/ผู้รับ</p>
     </a>
 </li>
+<li class="nav-item">
+    <a href="{{ route('admin.trips.index') }}" class="nav-link {{ in_array($route_name, ['trips', 'trip-items']) ? 'active' : '' }}">
+        <i class="nav-icon fas fa-truck"></i>
+        <p>รอบขนส่ง</p>
+    </a>
+</li>
+<li class="nav-item">
+    <a href="{{ route('admin.parcels.search') }}" class="nav-link {{ $route_name=='parcels' ? 'active' : '' }}">
+        <i class="nav-icon fas fa-qrcode"></i>
+        <p>ค้นหาพัสดุ</p>
+    </a>
+</li>
 @endif
 @if ($role_name=='admin')
 <li class="nav-item">

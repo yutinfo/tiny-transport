@@ -523,8 +523,13 @@ function contactMobileField(contactType) {
     return $('[name="' + (contactType === 'sender' ? 'sender_mobile' : 'receive_mobile') + '"]');
 }
 
+function contactSearchField(contactType) {
+    const field = $('.js-contact-search[data-contact-type="' + contactType + '"]').first();
+    return field.length ? field : contactMobileField(contactType);
+}
+
 function contactLookupFeedback(contactType) {
-    const field = contactMobileField(contactType);
+    const field = contactSearchField(contactType);
     const formGroup = field.closest('.form-group');
     let feedback = formGroup.find('.js-contact-lookup-feedback');
 
@@ -538,7 +543,7 @@ function contactLookupFeedback(contactType) {
 }
 
 function contactSuggestionList(contactType) {
-    const field = contactMobileField(contactType);
+    const field = contactSearchField(contactType);
     const formGroup = field.closest('.form-group');
     let list = formGroup.find('.js-contact-suggestion-list');
 
@@ -759,34 +764,34 @@ function lookupContactByMobile(contactType, mobile) {
     });
 }
 
-function lookupContactSuggestions(contactType, mobile) {
-    const normalizedMobile = normalizeMobile(mobile);
+function lookupContactSuggestions(contactType, term) {
+    const keyword = $.trim(term || '');
 
-    if (normalizedMobile.length < 3) {
+    if (keyword.length < 2) {
         hideContactSuggestions(contactType);
         clearContactLookupState(contactType);
         return;
     }
 
-    setContactLookupState(contactType, 'searching', 'กำลังค้นหารายการที่ตรงกับ ' + normalizedMobile + '...');
+    setContactLookupState(contactType, 'searching', 'กำลังค้นหารายการที่ตรงกับ ' + keyword + '...');
 
     $.ajax({
-        url: "{{route('admin.api.contacts.suggest')}}",
+        url: "{{route('admin.api.contacts.search')}}",
         method: 'GET',
         dataType: 'JSON',
         data: {
             type: contactType,
-            mobile: normalizedMobile,
+            q: keyword,
         },
         success: function(response) {
-            if (normalizeMobile(contactMobileField(contactType).val()) !== normalizedMobile) {
+            if ($.trim(contactSearchField(contactType).val()) !== keyword && $.trim(contactMobileField(contactType).val()) !== keyword) {
                 return;
             }
 
-            renderContactSuggestions(contactType, response.data || [], normalizedMobile);
+            renderContactSuggestions(contactType, response.data || [], keyword);
         },
         error: function() {
-            if (normalizeMobile(contactMobileField(contactType).val()) !== normalizedMobile) {
+            if ($.trim(contactSearchField(contactType).val()) !== keyword && $.trim(contactMobileField(contactType).val()) !== keyword) {
                 return;
             }
 
@@ -809,6 +814,7 @@ function fillOrderContact(contactType, contact) {
     $('[name="' + nameField + '"]').val(contact.name || '');
     $('[name="' + mobileField + '"]').val(contact.mobile || '');
     $('[name="' + addressField + '"]').val(contact.address || '');
+    contactSearchField(contactType).val([contact.name, contact.mobile].filter(Boolean).join(' - '));
     zipCodeField.val(contact.zip_code || '');
 
     if (!contact.province_id) {
@@ -844,6 +850,18 @@ function fillOrderContact(contactType, contact) {
 function bindContactLookup() {
     let senderLookupTimer = null;
     let receiverLookupTimer = null;
+    let contactSearchTimer = null;
+
+    $('.js-contact-search').on('input', function() {
+        const field = $(this);
+        const contactType = field.data('contact-type');
+        const keyword = field.val();
+
+        clearTimeout(contactSearchTimer);
+        contactSearchTimer = setTimeout(function() {
+            lookupContactSuggestions(contactType, keyword);
+        }, 300);
+    });
 
     $('[name="sender_mobile"]').on('input blur', function(event) {
         const mobile = $(this).val();
@@ -882,6 +900,13 @@ function bindContactLookup() {
     $('[name="receive_mobile"]').on('blur', function() {
         setTimeout(function() {
             hideContactSuggestions('receiver');
+        }, 180);
+    });
+
+    $('.js-contact-search').on('blur', function() {
+        const contactType = $(this).data('contact-type');
+        setTimeout(function() {
+            hideContactSuggestions(contactType);
         }, 180);
     });
 }

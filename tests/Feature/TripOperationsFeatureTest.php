@@ -128,8 +128,6 @@ class TripOperationsFeatureTest extends TestCase
 
     public function test_dashboard_shows_operational_kpis_for_selected_date_range()
     {
-        Carbon::setTestNow('2026-06-06 09:00:00');
-
         $user = $this->createUser();
         [$todayTrip, $deliveredItem] = $this->createTripWithItem([
             'code' => 'RUN-20260606-0001',
@@ -172,6 +170,41 @@ class TripOperationsFeatureTest extends TestCase
             ->assertSee('50.00');
 
         $this->assertSame(TripItem::DELIVERY_STATUS_DELIVERED, $deliveredItem->delivery_status);
+    }
+
+    public function test_dashboard_prioritizes_summary_filters_recent_trips_and_reports()
+    {
+        $user = $this->createUser();
+        $this->createTripWithItem([
+            'code' => 'RUN-20260606-0001',
+            'trip_date' => '2026-06-06',
+            'status' => Trip::STATUS_IN_TRANSIT,
+        ]);
+
+        $this->actingAs($user)
+            ->get('/admin/dashboard?date_from=2026-06-06&date_to=2026-06-06')
+            ->assertOk()
+            ->assertSeeInOrder([
+                'ภาพรวมการขนส่ง',
+                'ตัวกรองข้อมูล',
+                'สรุปการขนส่ง',
+                'รอบขนส่งล่าสุด',
+                'รายงานพัสดุ',
+            ]);
+    }
+
+    public function test_dashboard_uses_compact_header_and_safe_empty_report_table()
+    {
+        $user = $this->createUser();
+
+        $this->actingAs($user)
+            ->get('/admin/dashboard?date_from=2026-06-06&date_to=2026-06-06')
+            ->assertOk()
+            ->assertSee('แดชบอร์ดการขนส่ง')
+            ->assertDontSee('Operational overview')
+            ->assertSee('id="order_table"', false)
+            ->assertDontSee('colspan="9" class="text-center text-muted">ไม่พบข้อมูลรายงานพัสดุตามตัวกรองที่เลือก', false)
+            ->assertSee('ไม่พบข้อมูลรายงานพัสดุตามตัวกรองที่เลือก');
     }
 
     public function test_trip_csv_exports_stream_thai_excel_friendly_output()
@@ -228,7 +261,6 @@ class TripOperationsFeatureTest extends TestCase
             'email' => 'admin-test@example.com',
             'status' => 'active',
             'role_name' => 'admin',
-            'username_verified_at' => now(),
         ]);
     }
 

@@ -25,17 +25,15 @@ class TripModelFoundationTest extends TestCase
 
     public function test_trip_code_uses_daily_running_number()
     {
-        Carbon::setTestNow(Carbon::parse('2026-06-06 09:00:00'));
-
-        $this->assertSame('RUN-20260606-0001', Trip::generateCode());
+        $this->assertSame('RUN-20260606-0001', Trip::generateCode('2026-06-06'));
 
         Trip::create([
-            'code' => Trip::generateCode(),
+            'code' => Trip::generateCode('2026-06-06'),
             'trip_date' => '2026-06-06',
             'status' => Trip::STATUS_DRAFT,
         ]);
 
-        $this->assertSame('RUN-20260606-0002', Trip::generateCode());
+        $this->assertSame('RUN-20260606-0002', Trip::generateCode('2026-06-06'));
     }
 
     public function test_status_helpers_return_thai_labels()

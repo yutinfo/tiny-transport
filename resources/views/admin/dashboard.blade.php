@@ -29,423 +29,465 @@
 <script src="/plugins/pdfmake/vfs_fonts.js"></script>
 @endsection
 
-@push('page_css')
-        <style>
-        .report-body{
-            min-height: 500px;
-        }
-        .select2-container .select2-selection--single {
-        height: 36px;
-    }
-    .display-none{
-            display:none;
-        }
-        </style>
-@endpush
-
 @section('content')
-{{-- {{dd($selected)}} --}}
-<div class="container-fluid">
-    <section class="content-header">
-        <div class="container-fluid">
-            <div class="card">
-                <div class="card-header">
-                    <div class="row">
-                        <div class="col-sm-8">
-                            <div class="d-flex flex-row">
-                                <h5 class="font-weight-bold">
-                                    หน้าหลัก
-                                </h5>
-                                <ol class="breadcrumb ">
-                                    <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}"> <small> หน้าหลัก</small></a></li>
-                                    <li class="breadcrumb-item active"> <small>แดชบอร์ด</small></li>
-                                </ol>
+@php
+    $legacySelected = $selected[0] ?? [];
+    $reportDate = Arr::get($legacySelected, 'db_date', date('Y-m-d'));
+    $reportDisplayDate = Arr::get($legacySelected, 'select_date', '');
+    $operationStatusLabel = blank($operationFilters['status']) ? 'ทั้งหมด' : ($tripStatusLabels[$operationFilters['status']] ?? $operationFilters['status']);
 
-                            </div>
-                        </div>
+    $primaryMetrics = [
+        [
+            'label' => 'จำนวนพัสดุ',
+            'value' => number_format((int) Arr::get($data, 'count_id', 0)),
+            'icon' => 'fas fa-dolly-flatbed',
+            'theme' => 'info',
+            'note' => 'รายการพัสดุทั้งหมด',
+        ],
+        [
+            'label' => 'ยอดเงินทั้งหมด',
+            'value' => number_format((float) Arr::get($data, 'sum_parcel_pice', 0), 2),
+            'icon' => 'far fa-flag',
+            'theme' => 'success',
+            'note' => 'รวมทุกช่องทางชำระ',
+        ],
+        [
+            'label' => 'จ่ายทันที',
+            'value' => number_format((float) Arr::get($data, 'parcel_pice_immediately', 0), 2),
+            'icon' => 'fas fa-money-bill-alt',
+            'theme' => 'warning',
+            'note' => 'ชำระทันที',
+        ],
+        [
+            'label' => 'เก็บเงินปลายทาง',
+            'value' => number_format((float) Arr::get($data, 'parcel_pice_on_delivery', 0), 2),
+            'icon' => 'fas fa-money-check',
+            'theme' => 'danger',
+            'note' => 'ยอด COD จากพัสดุที่รอเก็บ',
+        ],
+    ];
 
-                    </div>
-                </div>
+    $operationMetrics = [
+        [
+            'label' => 'รอบขนส่ง',
+            'value' => number_format((int) ($operationKpis['trips_count'] ?? 0)),
+            'icon' => 'fas fa-truck',
+            'theme' => 'primary',
+            'note' => 'ช่วงวันที่ที่เลือก',
+        ],
+        [
+            'label' => 'พัสดุเข้ารอบ',
+            'value' => number_format((int) ($operationKpis['assigned_count'] ?? 0)),
+            'icon' => 'fas fa-boxes',
+            'theme' => 'info',
+            'note' => 'พัสดุที่ถูกมอบหมาย',
+        ],
+        [
+            'label' => 'ส่งสำเร็จ',
+            'value' => number_format((int) ($operationKpis['delivered_count'] ?? 0)),
+            'icon' => 'fas fa-check',
+            'theme' => 'success',
+            'note' => 'จำนวนงานที่ปิดจบ',
+        ],
+        [
+            'label' => 'อัตราส่งสำเร็จ',
+            'value' => number_format((float) ($operationKpis['delivery_success_rate'] ?? 0), 2) . '%',
+            'icon' => 'fas fa-percentage',
+            'theme' => 'dark',
+            'note' => 'ประสิทธิภาพการส่ง',
+        ],
+    ];
+
+    $deliveryBadgeClasses = [
+        \App\Models\TripItem::DELIVERY_STATUS_WAITING => 'badge-secondary',
+        \App\Models\TripItem::DELIVERY_STATUS_PICKED_UP => 'badge-info',
+        \App\Models\TripItem::DELIVERY_STATUS_IN_TRANSIT => 'badge-primary',
+        \App\Models\TripItem::DELIVERY_STATUS_DELIVERED => 'badge-success',
+        \App\Models\TripItem::DELIVERY_STATUS_FAILED => 'badge-danger',
+        \App\Models\TripItem::DELIVERY_STATUS_RETURNED => 'badge-warning',
+    ];
+
+    $tripBadgeClasses = [
+        \App\Models\Trip::STATUS_DRAFT => 'badge-secondary',
+        \App\Models\Trip::STATUS_ASSIGNED => 'badge-info',
+        \App\Models\Trip::STATUS_IN_TRANSIT => 'badge-primary',
+        \App\Models\Trip::STATUS_COMPLETED => 'badge-success',
+        \App\Models\Trip::STATUS_CANCELLED => 'badge-danger',
+    ];
+
+    $reportTotals = [
+        'immediately' => 0,
+        'on_delivery' => 0,
+    ];
+
+    foreach ($dataTable as $reportRow) {
+        if (($reportRow['payment_type_id'] ?? null) === 'immediately') {
+            $reportTotals['immediately'] += (float) ($reportRow['parcel_pice'] ?? 0);
+            continue;
+        }
+
+        $reportTotals['on_delivery'] += (float) ($reportRow['parcel_pice'] ?? 0);
+    }
+@endphp
+
+<div class="container-fluid dashboard-page">
+    <section class="dashboard-topbar">
+        <div class="dashboard-topbar__main">
+            <div class="dashboard-titleblock">
+                <span class="dashboard-kicker">
+                    <i class="fas fa-chart-line" aria-hidden="true"></i>
+                    ภาพรวมการขนส่ง
+                </span>
+                <h1 class="dashboard-title">แดชบอร์ดการขนส่ง</h1>
+                <p class="dashboard-subtitle">ติดตาม KPI รอบขนส่ง พัสดุ และรายงานตามตัวกรองที่เลือก</p>
             </div>
-        </div><!-- /.container-fluid -->
+            <div class="dashboard-actions">
+                <a href="{{ route('admin.trips.export.csv', request()->only(['date_from', 'date_to', 'driver_name', 'status'])) }}" class="btn bg-success btn-sm">
+                    <i class="fas fa-file-csv"></i> ส่งออก CSV
+                </a>
+                <a href="{{ route('admin.dashboard') }}" class="btn btn-default btn-sm">
+                    <i class="fas fa-redo"></i> ล้างตัวกรอง
+                </a>
+            </div>
+        </div>
+        <div class="dashboard-filter-tags" aria-label="ตัวกรองปัจจุบัน">
+            <span class="dashboard-chip">ช่วงวันที่: {{ $operationFilters['date_from'] }} - {{ $operationFilters['date_to'] }}</span>
+            <span class="dashboard-chip">พนักงานขับรถ: {{ $operationFilters['driver_name'] !== '' ? $operationFilters['driver_name'] : 'ทั้งหมด' }}</span>
+            <span class="dashboard-chip">สถานะรอบ: {{ $operationStatusLabel }}</span>
+        </div>
     </section>
 
-    <section class="content">
-        <div class="row">
-            <div class="col-md-3 col-sm-6 col-12">
-                <div class="info-box">
-                    <span class="info-box-icon bg-info"><i class="fas fa-dolly-flatbed"></i></span>
-                    <div class="info-box-content">
-                        <span class="info-box-text">จำนวนพัสดุ</span>
-                        <span class="info-box-number">{{Arr::get($data,'count_id',0)}}</span>
-                    </div>
-
+    <section class="card dashboard-toolbar mb-3">
+        <form action="{{ route('admin.dashboard') }}" method="GET">
+            <div class="card-body">
+                <div class="dashboard-filter-heading">
+                    <span class="dashboard-filter-title">
+                        <i class="fas fa-filter" aria-hidden="true"></i>
+                        ตัวกรองข้อมูล
+                    </span>
+                    <small class="text-muted">ปรับช่วงวันที่ พนักงาน และสถานะเพื่ออัปเดตตัวเลขด้านล่าง</small>
                 </div>
-
-            </div>
-
-            <div class="col-md-3 col-sm-6 col-12">
-                <div class="info-box">
-                    <span class="info-box-icon bg-success"><i class="far fa-flag"></i></span>
-                    <div class="info-box-content">
-                        <span class="info-box-text">ยอดเงินทั้งหมด</span>
-                        <span class="info-box-number">{{number_format(Arr::get($data,'sum_parcel_pice',0),2)}}</span>
+                <div class="form-row align-items-end">
+                    <div class="form-group col-xl-2 col-lg-3 col-md-6">
+                        <label for="date_from">วันที่เริ่ม</label>
+                        <input type="date" name="date_from" id="date_from" value="{{ $operationFilters['date_from'] }}" class="form-control">
                     </div>
-
-                </div>
-
-            </div>
-
-            <div class="col-md-3 col-sm-6 col-12">
-                <div class="info-box">
-                    <span class="info-box-icon bg-warning"><i class="fas fa-money-bill-alt"></i></span>
-                    <div class="info-box-content">
-                        <span class="info-box-text">จ่ายทันที</span>
-                        <span class="info-box-number">{{number_format(Arr::get($data,'parcel_pice_immediately',0),2)}}</span>
+                    <div class="form-group col-xl-2 col-lg-3 col-md-6">
+                        <label for="date_to">วันที่สิ้นสุด</label>
+                        <input type="date" name="date_to" id="date_to" value="{{ $operationFilters['date_to'] }}" class="form-control">
                     </div>
-
-                </div>
-
-            </div>
-
-            <div class="col-md-3 col-sm-6 col-12">
-                <div class="info-box">
-                    <span class="info-box-icon bg-danger"><i class="fas fa-money-check"></i></span>
-                    <div class="info-box-content">
-                        <span class="info-box-text">เก็บเงินปลายทาง</span>
-                        <span class="info-box-number">{{number_format(Arr::get($data,'parcel_pice_on_delivery',0),2)}}</span>
+                    <div class="form-group col-xl-3 col-lg-3 col-md-6">
+                        <label for="driver_name">พนักงานขับรถ</label>
+                        <input type="text" name="driver_name" id="driver_name" value="{{ $operationFilters['driver_name'] }}" class="form-control" placeholder="ค้นหาชื่อพนักงาน">
                     </div>
-
-                </div>
-
-            </div>
-
-        </div>
-
-        <div class="card">
-            <div class="card-header">
-                <div class="row">
-                    <div class="col-md-6">
-                        <h3 class="card-title">KPI การขนส่ง</h3>
+                    <div class="form-group col-xl-2 col-lg-3 col-md-6">
+                        <label for="status">สถานะรอบ</label>
+                        <select name="status" id="status" class="form-control">
+                            <option value="">ทั้งหมด</option>
+                            @foreach($tripStatusLabels as $status => $label)
+                                <option value="{{ $status }}" {{ $operationFilters['status'] === $status ? 'selected' : '' }}>{{ $label }}</option>
+                            @endforeach
+                        </select>
                     </div>
-                    <div class="col-md-6 text-right">
-                        <a href="{{ route('admin.trips.export.csv', request()->only(['date_from', 'date_to', 'driver_name', 'status'])) }}" class="btn bg-success btn-sm">
-                            <i class="fas fa-file-csv"></i> ส่งออก CSV
+                    <div class="form-group col-xl-2 col-lg-3 col-md-6">
+                        <button type="submit" class="btn bg-info btn-block">
+                            <i class="fas fa-search"></i> ค้นหา
+                        </button>
+                    </div>
+                    <div class="form-group col-xl-1 col-lg-2 col-md-6">
+                        <a href="{{ route('admin.dashboard') }}" class="btn btn-default btn-block">
+                            <i class="fas fa-redo"></i> ล้าง
                         </a>
                     </div>
                 </div>
             </div>
-            <form action="{{ route('admin.dashboard') }}" method="GET">
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-3">
-                            <div class="form-group">
-                                <label for="date_from">วันที่เริ่ม</label>
-                                <input type="date" name="date_from" id="date_from" value="{{ $operationFilters['date_from'] }}" class="form-control">
+        </form>
+    </section>
+
+    <section class="dashboard-section mb-3">
+        <div class="dashboard-section-heading">
+            <div>
+                <span class="dashboard-section-kicker">KPI การขนส่ง</span>
+                <h3>สรุปการขนส่ง</h3>
+                <p>ตัวเลขสำคัญที่ต้องอ่านก่อนลงรายละเอียด</p>
+            </div>
+        </div>
+
+        <div class="row">
+            @foreach($primaryMetrics as $metric)
+                <div class="col-lg-3 col-sm-6 mb-3">
+                    <div class="card dashboard-metric dashboard-metric--{{ $metric['theme'] }}">
+                        <div class="card-body">
+                            <div class="dashboard-metric__head">
+                                <div>
+                                    <span class="dashboard-metric__label">{{ $metric['label'] }}</span>
+                                    <div class="dashboard-metric__value">{{ $metric['value'] }}</div>
+                                </div>
+                                <span class="dashboard-metric__icon" aria-hidden="true">
+                                    <i class="{{ $metric['icon'] }}"></i>
+                                </span>
                             </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="form-group">
-                                <label for="date_to">วันที่สิ้นสุด</label>
-                                <input type="date" name="date_to" id="date_to" value="{{ $operationFilters['date_to'] }}" class="form-control">
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="form-group">
-                                <label for="driver_name">พนักงานขับรถ</label>
-                                <input type="text" name="driver_name" id="driver_name" value="{{ $operationFilters['driver_name'] }}" class="form-control">
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="form-group">
-                                <label for="status">สถานะรอบ</label>
-                                <select name="status" id="status" class="form-control">
-                                    <option value="">ทั้งหมด</option>
-                                    @foreach($tripStatusLabels as $status => $label)
-                                        <option value="{{ $status }}" {{ $operationFilters['status'] === $status ? 'selected' : '' }}>{{ $label }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
+                            <div class="dashboard-metric__note">{{ $metric['note'] }}</div>
                         </div>
                     </div>
-                    <button type="submit" class="btn bg-info"><i class="fas fa-search"></i> ค้นหา</button>
-                    <a href="{{ route('admin.dashboard') }}" class="btn bg-secondary"><i class="fas fa-redo"></i> ล้าง</a>
+                </div>
+            @endforeach
+        </div>
+
+        <div class="row">
+            @foreach($operationMetrics as $metric)
+                <div class="col-lg-3 col-sm-6 mb-3">
+                    <div class="card dashboard-metric dashboard-metric--{{ $metric['theme'] }}">
+                        <div class="card-body">
+                            <div class="dashboard-metric__head">
+                                <div>
+                                    <span class="dashboard-metric__label">{{ $metric['label'] }}</span>
+                                    <div class="dashboard-metric__value">{{ $metric['value'] }}</div>
+                                </div>
+                                <span class="dashboard-metric__icon" aria-hidden="true">
+                                    <i class="{{ $metric['icon'] }}"></i>
+                                </span>
+                            </div>
+                            <div class="dashboard-metric__note">{{ $metric['note'] }}</div>
+                        </div>
+                    </div>
+                </div>
+            @endforeach
+        </div>
+    </section>
+
+    <div class="row mb-4">
+        <div class="col-lg-4 mb-3">
+            <div class="card dashboard-summary-card h-100">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h3 class="card-title mb-1">สถานะจัดส่ง</h3>
+                            <small class="text-muted">จำนวนพัสดุตามสถานะล่าสุด</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <table class="table table-sm dashboard-summary-table mb-0">
+                        <tbody>
+                            @foreach($deliveryStatusLabels as $status => $label)
+                                <tr>
+                                    <td>
+                                        <span class="dashboard-status-badge {{ $deliveryBadgeClasses[$status] ?? 'badge-secondary' }}"></span>
+                                        {{ $label }}
+                                    </td>
+                                    <td class="text-right font-weight-bold">{{ number_format((int) ($deliveryBreakdown[$status] ?? 0)) }}</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4 mb-3">
+            <div class="card dashboard-summary-card h-100">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h3 class="card-title mb-1">สรุป COD</h3>
+                            <small class="text-muted">ยอดที่ต้องจัดการและยอดที่เก็บได้แล้ว</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <table class="table table-sm dashboard-summary-table mb-0">
+                        <tbody>
+                            <tr>
+                                <td>ยอด COD รวม</td>
+                                <td class="text-right font-weight-bold">{{ number_format($codSummary['total_cod_amount'], 2) }}</td>
+                            </tr>
+                            <tr>
+                                <td>ยอดเก็บแล้ว</td>
+                                <td class="text-right font-weight-bold">{{ number_format($codSummary['collected_amount'], 2) }}</td>
+                            </tr>
+                            <tr>
+                                <td>ยอด COD คงเหลือ</td>
+                                <td class="text-right font-weight-bold">{{ number_format($codSummary['remaining_cod_amount'], 2) }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4 mb-3">
+            <div class="card dashboard-summary-card h-100">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h3 class="card-title mb-1">รอบขนส่งตามสถานะ</h3>
+                            <small class="text-muted">สรุปจำนวนรอบแยกตามสถานะงาน</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <table class="table table-sm dashboard-summary-table mb-0">
+                        <tbody>
+                            @foreach($tripStatusLabels as $status => $label)
+                                <tr>
+                                    <td>
+                                        <span class="dashboard-status-badge {{ $tripBadgeClasses[$status] ?? 'badge-secondary' }}"></span>
+                                        {{ $label }}
+                                    </td>
+                                    <td class="text-right font-weight-bold">{{ number_format((int) ($tripsByStatus[$status] ?? 0)) }}</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <section class="card dashboard-recent-card mb-4">
+        <div class="card-header d-flex flex-wrap justify-content-between align-items-center">
+            <div>
+                <h3 class="card-title mb-1">รอบขนส่งล่าสุด</h3>
+                <small class="text-muted">10 รายการล่าสุดในช่วงวันที่เลือก</small>
+            </div>
+            <a href="{{ route('admin.trips.index', request()->only(['date_from', 'date_to', 'driver_name', 'status'])) }}" class="btn btn-default btn-sm mt-2 mt-sm-0">
+                <i class="fas fa-list"></i> ดูทุกรอบ
+            </a>
+        </div>
+        <div class="card-body p-0 table-responsive">
+            <table class="table table-hover table-striped mb-0 dashboard-table">
+                <thead>
+                    <tr>
+                        <th>วันที่</th>
+                        <th>รหัสรอบ</th>
+                        <th>พนักงานขับรถ</th>
+                        <th>ทะเบียนรถ</th>
+                        <th>พัสดุ</th>
+                        <th>ส่งสำเร็จ / ไม่สำเร็จ / คงเหลือ</th>
+                        <th class="text-right">เก็บ COD</th>
+                        <th>สถานะ</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($recentTrips as $trip)
+                        @php
+                            $delivered = $trip->tripItems->where('delivery_status', \App\Models\TripItem::DELIVERY_STATUS_DELIVERED)->count();
+                            $failed = $trip->tripItems->where('delivery_status', \App\Models\TripItem::DELIVERY_STATUS_FAILED)->count();
+                            $returned = $trip->tripItems->where('delivery_status', \App\Models\TripItem::DELIVERY_STATUS_RETURNED)->count();
+                            $remaining = max(0, $trip->tripItems->count() - $delivered - $failed - $returned);
+                        @endphp
+                        <tr>
+                            <td>{{ optional($trip->trip_date)->format('Y-m-d') }}</td>
+                            <td>{{ $trip->code }}</td>
+                            <td>{{ $trip->driver_name ?: '-' }}</td>
+                            <td>{{ $trip->car_id ?: '-' }}</td>
+                            <td>{{ number_format((int) $trip->total_parcels) }}</td>
+                            <td>{{ number_format((int) $delivered) }} / {{ number_format((int) $failed) }} / {{ number_format((int) $remaining) }}</td>
+                            <td class="text-right">{{ number_format((float) $trip->collected_amount, 2) }}</td>
+                            <td><span class="badge {{ $tripBadgeClasses[$trip->status] ?? 'badge-secondary' }}">{{ $trip->status_label }}</span></td>
+                            <td class="text-right">
+                                <a href="{{ route('admin.trips.show', $trip) }}" class="btn bg-primary btn-xs"><i class="fas fa-eye"></i> ดู</a>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="9" class="text-center text-muted">ไม่พบรอบขนส่งในช่วงวันที่เลือก</td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="card dashboard-report-panel mb-4">
+        <div class="card-header">
+            <div class="d-flex flex-wrap justify-content-between align-items-start">
+                <div class="mb-2 mb-lg-0">
+                    <h3 class="card-title mb-1">รายงานพัสดุ</h3>
+                    <small class="text-muted">ค้นหาพัสดุแบบละเอียดตามจังหวัดและวันที่</small>
+                </div>
+                <div class="dashboard-report-summary">
+                    <div class="dashboard-mini-stat">
+                        <span>รวมจ่ายทันที</span>
+                        <strong>{{ number_format($reportTotals['immediately'], 2) }}</strong>
+                    </div>
+                    <div class="dashboard-mini-stat">
+                        <span>รวมเก็บเงินปลายทาง</span>
+                        <strong>{{ number_format($reportTotals['on_delivery'], 2) }}</strong>
+                    </div>
+                </div>
+            </div>
+
+            <form action="{{ route('admin.dashboard') }}" method="GET" id="generate_report" class="dashboard-report-form mt-3">
+                <div class="form-row">
+                    <div class="form-group col-lg-4 col-md-5">
+                        <label for="select_province" class="sr-only">จังหวัด</label>
+                        <select class="form-control" id="select_province" name="select_province">
+                            <option value="">เลือกจังหวัด</option>
+                            @foreach ($province as $item)
+                                <option {{ $item['id'] == Arr::get($legacySelected, 'select_province') ? 'selected' : '' }} value="{{ $item['id'] }}">{{ $item['name_th'] }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="form-group col-lg-4 col-md-4">
+                        <label for="select_date" class="sr-only">วันที่รายงาน</label>
+                        <div class="input-group">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text">
+                                    <i class="far fa-calendar-alt"></i>
+                                </span>
+                            </div>
+                            <input type="hidden" name="db_date" value="{{ $reportDate }}">
+                            <input type="text" name="select_date" class="form-control float-right" id="select_date" value="{{ $reportDisplayDate }}" placeholder="เลือกวัน">
+                        </div>
+                    </div>
+                    <div class="form-group col-lg-4 col-md-3 d-flex align-items-end">
+                        <button class="btn bg-info btn-block" id="view_report">
+                            <i class="far fa-chart-bar"></i> ดูรายงาน
+                        </button>
+                    </div>
                 </div>
             </form>
         </div>
 
-        <div class="row">
-            <div class="col-lg-3 col-md-4 col-6">
-                <div class="small-box bg-info"><div class="inner"><h3>{{ number_format($operationKpis['trips_count']) }}</h3><p>รอบขนส่ง</p></div><div class="icon"><i class="fas fa-truck"></i></div></div>
-            </div>
-            <div class="col-lg-3 col-md-4 col-6">
-                <div class="small-box bg-primary"><div class="inner"><h3>{{ number_format($operationKpis['assigned_count']) }}</h3><p>พัสดุเข้ารอบ</p></div><div class="icon"><i class="fas fa-boxes"></i></div></div>
-            </div>
-            <div class="col-lg-3 col-md-4 col-6">
-                <div class="small-box bg-success"><div class="inner"><h3>{{ number_format($operationKpis['delivered_count']) }}</h3><p>ส่งสำเร็จ</p></div><div class="icon"><i class="fas fa-check"></i></div></div>
-            </div>
-            <div class="col-lg-3 col-md-4 col-6">
-                <div class="small-box bg-danger"><div class="inner"><h3>{{ number_format($operationKpis['failed_count']) }}</h3><p>ส่งไม่สำเร็จ</p></div><div class="icon"><i class="fas fa-times"></i></div></div>
-            </div>
-            <div class="col-lg-3 col-md-4 col-6">
-                <div class="small-box bg-warning"><div class="inner"><h3>{{ number_format($operationKpis['returned_count']) }}</h3><p>ตีกลับ</p></div><div class="icon"><i class="fas fa-undo"></i></div></div>
-            </div>
-            <div class="col-lg-3 col-md-4 col-6">
-                <div class="small-box bg-secondary"><div class="inner"><h3>{{ number_format($operationKpis['waiting_transit_count']) }}</h3><p>รอ/กำลังจัดส่ง</p></div><div class="icon"><i class="fas fa-clock"></i></div></div>
-            </div>
-            <div class="col-lg-3 col-md-4 col-6">
-                <div class="small-box bg-teal"><div class="inner"><h3>{{ number_format($operationKpis['remaining_cod_amount'], 2) }}</h3><p>ยอด COD คงเหลือ</p></div><div class="icon"><i class="fas fa-wallet"></i></div></div>
-            </div>
-            <div class="col-lg-3 col-md-4 col-6">
-                <div class="small-box bg-dark"><div class="inner"><h3>{{ number_format($operationKpis['delivery_success_rate'], 2) }}%</h3><p>อัตราส่งสำเร็จ</p></div><div class="icon"><i class="fas fa-percentage"></i></div></div>
-            </div>
-        </div>
-
-        <div class="row">
-            <div class="col-lg-4">
-                <div class="card">
-                    <div class="card-header"><h3 class="card-title">สถานะจัดส่ง</h3></div>
-                    <div class="card-body p-0">
-                        <table class="table table-sm table-bordered mb-0">
-                            <tbody>
-                                @foreach($deliveryStatusLabels as $status => $label)
-                                    <tr>
-                                        <td>{{ $label }}</td>
-                                        <td class="text-right">{{ number_format($deliveryBreakdown[$status] ?? 0) }}</td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-4">
-                <div class="card">
-                    <div class="card-header"><h3 class="card-title">สรุป COD</h3></div>
-                    <div class="card-body p-0">
-                        <table class="table table-sm table-bordered mb-0">
-                            <tbody>
-                                <tr><td>ยอด COD รวม</td><td class="text-right">{{ number_format($codSummary['total_cod_amount'], 2) }}</td></tr>
-                                <tr><td>ยอดเก็บแล้ว</td><td class="text-right">{{ number_format($codSummary['collected_amount'], 2) }}</td></tr>
-                                <tr><td>ยอด COD คงเหลือ</td><td class="text-right">{{ number_format($codSummary['remaining_cod_amount'], 2) }}</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-4">
-                <div class="card">
-                    <div class="card-header"><h3 class="card-title">รอบขนส่งตามสถานะ</h3></div>
-                    <div class="card-body p-0">
-                        <table class="table table-sm table-bordered mb-0">
-                            <tbody>
-                                @foreach($tripStatusLabels as $status => $label)
-                                    <tr>
-                                        <td>{{ $label }}</td>
-                                        <td class="text-right">{{ number_format($tripsByStatus[$status] ?? 0) }}</td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="card">
-            <div class="card-header"><h3 class="card-title">รอบขนส่งล่าสุด</h3></div>
-            <div class="card-body p-0 table-responsive">
-                <table class="table table-striped table-bordered table-sm mb-0">
+        <div class="card-body p-0">
+            <div class="table-responsive ta-table-panel">
+                <table class="table table-striped table-bordered dataTable dtr-inline mb-0 dashboard-report-table" id="order_table">
                     <thead>
                         <tr>
                             <th>วันที่</th>
-                            <th>รหัสรอบ</th>
-                            <th>พนักงานขับรถ</th>
-                            <th>ทะเบียนรถ</th>
-                            <th>พัสดุ</th>
-                            <th>ส่งสำเร็จ/ไม่สำเร็จ/คงเหลือ</th>
-                            <th class="text-right">เก็บ COD</th>
-                            <th>สถานะ</th>
-                            <th></th>
+                            <th>รหัสพัสดุ</th>
+                            <th>ข้อมูลพัสดุ</th>
+                            <th>ชื่อผู้ฝาก</th>
+                            <th>ชื่อผู้รับ</th>
+                            <th>จังหวัดจัดส่ง</th>
+                            <th>จำนวนเงิน</th>
+                            <th>รูปแบบการชำระเงิน</th>
+                            <th>รูปแบบการจัดส่ง</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @forelse($recentTrips as $trip)
-                            @php
-                                $delivered = $trip->tripItems->where('delivery_status', \App\Models\TripItem::DELIVERY_STATUS_DELIVERED)->count();
-                                $failed = $trip->tripItems->where('delivery_status', \App\Models\TripItem::DELIVERY_STATUS_FAILED)->count();
-                                $returned = $trip->tripItems->where('delivery_status', \App\Models\TripItem::DELIVERY_STATUS_RETURNED)->count();
-                                $remaining = max(0, $trip->tripItems->count() - $delivered - $failed - $returned);
-                            @endphp
+                        @foreach ($dataTable as $value)
                             <tr>
-                                <td>{{ optional($trip->trip_date)->format('Y-m-d') }}</td>
-                                <td>{{ $trip->code }}</td>
-                                <td>{{ $trip->driver_name ?: '-' }}</td>
-                                <td>{{ $trip->car_id ?: '-' }}</td>
-                                <td>{{ number_format($trip->tripItems->count()) }}</td>
-                                <td>{{ number_format($delivered) }} / {{ number_format($failed) }} / {{ number_format($remaining) }}</td>
-                                <td class="text-right">{{ number_format($trip->collected_amount, 2) }}</td>
-                                <td><span class="badge badge-info">{{ $trip->status_label }}</span></td>
-                                <td class="text-right"><a href="{{ route('admin.trips.show', $trip) }}" class="btn bg-primary btn-xs"><i class="fas fa-eye"></i> ดู</a></td>
+                                <td>{{ $value['created_at'] }}</td>
+                                <td>{{ $value['parcel_code'] }}</td>
+                                <td>{{ $value['parcel_description'] }}</td>
+                                <td>{{ $value['customer_name'] }}</td>
+                                <td>{{ $value['receive_name'] }}</td>
+                                <td>{{ $value['province_name'] }}</td>
+                                <td class="text-right">{{ number_format($value['parcel_pice'], 2) }}</td>
+                                <td>{{ $value['payment_type'] }}</td>
+                                <td>{{ $value['parcel_pickup_type'] }}</td>
                             </tr>
-                        @empty
-                            <tr><td colspan="9" class="text-center text-muted">ไม่พบรอบขนส่งในช่วงวันที่เลือก</td></tr>
-                        @endforelse
+                        @endforeach
                     </tbody>
                 </table>
             </div>
         </div>
-
-        <div class="row">
-            <div class="col-md-12">
-                <div class="card card-default">
-                    <div class="card-header">
-                        <div class="row">
-                            <div class="col-sm text-left">
-                                <h3 class="card-title">รายงาน</h3>
-
-                            </div>
-                            <div class="col-sm-6 text-right">
-                                <form action="{{route('admin.dashboard')}}" method="GET"  id="generate_report">
-                                    @csrf
-                                    @php
-                                        $legacySelected = $selected[0] ?? [];
-                                    @endphp
-                                <div class="col-sm-12 text-right">
-                                    <div class="row">
-
-                                        <div class="form-group  col-sm-6">
-
-                                        <label for="select_province" class="sr-only">จังหวัด</label>
-                                        <select class="form-control" id="select_province" name="select_province">
-                                            <option value="">เลือกจังหวัด</option>
-                                            @foreach ($province as $item)
-                                            <option {{ $item['id'] == Arr::get($legacySelected, 'select_province') ? 'selected' : '' }} value="{{$item['id']}}">{{$item['name_th']}}</option>
-
-                                            @endforeach
-                                        </select>
-                                        </div>
-
-                                        <div class="form-group  col-sm-6">
-                                            <div class="input-group">
-                                                <label for="select_date" class="sr-only">วันที่รายงาน</label>
-                                                <div class="input-group-prepend">
-                                                    <span class="input-group-text">
-                                                        <i class="far fa-calendar-alt"></i>
-                                                    </span>
-                                                </div>
-                                                <input type="hidden" name="db_date" value="{{ Arr::get($legacySelected, 'db_date', \Carbon\Carbon::now()->format('Y-m-d')) }}">
-                                                <input type="text" name="select_date" class="form-control float-right" id="select_date" value="{{ Arr::get($legacySelected, 'select_date', '') }}" placeholder="เลือกวัน">
-
-                                                <button class="btn bg-info ml-sm-2" id="view_report">
-                                                    <i class="far fa-chart-bar"></i> ดูรายงาน
-                                                </button>
-                                            </div>
-
-                                        </div>
-                                    </div>
-                                </div>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-
-                        <div class="card-body p-0">
-                            <div class="table-responsive ta-table-panel">
-                                <table class="table table-striped table-bordered  dataTable dtr-inline " id="order_table">
-                                    <thead>
-                                        <tr>
-
-                                            <th>วันที่</th>
-                                            <th>รหัสพัสดุ</th>
-                                            <th>ข้อมูลพัสดุ</th>
-                                            <th>ชื่อผู้ฝาก</th>
-                                            <th>ชื่อผู้รับ</th>
-                                            <th>จังหวัดจัดส่ง</th>
-
-                                            <th>จำนวนเงิน</th>
-                                            <th>รูปแบบการชำระเงิน</th>
-                                            <th>รูปแบบการจัดส่ง</th>
-                                        </tr>
-                                    </thead>
-
-                                    <tbody>
-                                        @php
-                                            $immediately_total=0;
-                                            $on_delivery_total=0;
-                                        @endphp
-                                        @foreach ($dataTable as $key=> $value)
-                                        @php
-
-                                            if($value['payment_type_id']=='immediately'){
-                                                $immediately_total+=$value["parcel_pice"];
-                                            }else{
-                                                $on_delivery_total+=$value["parcel_pice"];
-                                            }
-                                        @endphp
-                                        <tr>
-
-                                            <td>{{$value["created_at"]}}</td>
-                                            <td>{{$value["parcel_code"]}}</td>
-                                            <td>{{$value["parcel_description"]}}</td>
-                                            <td>{{$value["customer_name"]}}</td>
-                                            <td>{{$value["receive_name"]}}</td>
-                                            <td>{{$value["province_name"]}}</td>
-                                            <td class="text-right">{{number_format($value["parcel_pice"],2)}}</td>
-                                            <td>{{$value["payment_type"]}}</td>
-                                            <td>{{$value["parcel_pickup_type"]}}</td>
-
-                                        </tr>
-                                        @if ($value == end($dataTable))
-                                        <tr class="display-none" >
-                                            <td></td>
-                                            <td></td>
-                                            <td></td>
-                                            <td></td>
-                                            <td></td>
-                                            <td></td>
-                                            <td class="text-right">{{number_format($immediately_total,2)}}</td>
-                                            <th>
-                                               รวมจ่ายทันที
-                                            </th>
-                                            <td></td>
-                                            <td></td>
-
-                                        </tr>
-                                        <tr class="display-none" >
-                                            <td></td>
-                                            <td></td>
-                                            <td></td>
-                                            <td></td>
-
-                                            <td></td>
-                                            <td></td>
-                                            <td class="text-right text-underline ">{{number_format( $on_delivery_total,2)}}</td>
-                                            <th>
-                                               รวมเก็บเงินปลายทาง
-                                            </th>
-                                            <td></td>
-                                            <td></td>
-
-                                        </tr>
-                                        @endif
-                                        @endforeach
-                                    </tbody>
-
-
-                                </table>
-                            </div>
-
-                        </div>
-                </div>
-                </div>
-            </div>
-        </div>
     </section>
-
 </div>
 @endsection
 
 @push('page_scripts')
     @include('admin.dashboard.dashboard-script')
-@endpush()
+@endpush

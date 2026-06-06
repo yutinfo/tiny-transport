@@ -73,7 +73,6 @@ class OrderReceiveDeleteTest extends TestCase
             'email' => 'admin-test@example.com',
             'status' => 'active',
             'role_name' => 'admin',
-            'username_verified_at' => now(),
         ]);
     }
 

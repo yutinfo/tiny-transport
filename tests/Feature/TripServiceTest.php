@@ -49,7 +49,7 @@ class TripServiceTest extends TestCase
         $service = new TripService();
         $trip = $this->createTrip();
         [, $receiver] = $this->createOrderAndReceiver([
-            'delivery_status' => null,
+            'delivery_status' => TripItem::DELIVERY_STATUS_WAITING,
         ]);
 
         $service->assignParcel($trip, $receiver, 'Admin');
@@ -57,7 +57,7 @@ class TripServiceTest extends TestCase
         $this->assertDatabaseHas('parcel_status_logs', [
             'order_receive_id' => $receiver->id,
             'trip_id' => $trip->id,
-            'from_status' => null,
+            'from_status' => TripItem::DELIVERY_STATUS_WAITING,
             'to_status' => TripItem::DELIVERY_STATUS_WAITING,
             'note' => 'เพิ่มเข้ารอบขนส่ง ' . $trip->code,
             'created_by' => 'Admin',

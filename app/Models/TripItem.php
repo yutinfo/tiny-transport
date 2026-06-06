@@ -96,6 +96,18 @@ class TripItem extends Model
         return self::deliveryStatusLabel($this->delivery_status);
     }
 
+    public function getDeliveryStatusBadgeClassAttribute(): string
+    {
+        return [
+            self::DELIVERY_STATUS_WAITING => 'badge-secondary',
+            self::DELIVERY_STATUS_PICKED_UP => 'badge-info',
+            self::DELIVERY_STATUS_IN_TRANSIT => 'badge-primary',
+            self::DELIVERY_STATUS_DELIVERED => 'badge-success',
+            self::DELIVERY_STATUS_FAILED => 'badge-danger',
+            self::DELIVERY_STATUS_RETURNED => 'badge-warning',
+        ][$this->delivery_status] ?? 'badge-secondary';
+    }
+
     public static function paymentStatuses(): array
     {
         return [
@@ -124,5 +136,15 @@ class TripItem extends Model
     public function getPaymentStatusLabelAttribute(): string
     {
         return self::paymentStatusLabel($this->payment_status);
+    }
+
+    public function getPaymentStatusBadgeClassAttribute(): string
+    {
+        return [
+            self::PAYMENT_STATUS_WAITING => 'badge-warning',
+            self::PAYMENT_STATUS_PAID => 'badge-success',
+            self::PAYMENT_STATUS_UNPAID => 'badge-danger',
+            self::PAYMENT_STATUS_WAIVED => 'badge-info',
+        ][$this->payment_status] ?? 'badge-secondary';
     }
 }

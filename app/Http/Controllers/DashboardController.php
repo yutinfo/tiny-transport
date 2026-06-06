@@ -34,9 +34,9 @@ class DashboardController extends Controller
 
         $orders = DB::table('order_receives')
         ->select(
-            DB::raw("count(id) as 'count_id', SUM(parcel_pice) as 'sum_parcel_pice'"),
-            DB::raw("SUM(CASE WHEN payment_type = 'on_delivery' THEN parcel_pice ELSE 0 END) as parcel_pice_on_delivery"),
-            DB::raw("SUM(CASE WHEN payment_type = 'immediately' THEN parcel_pice ELSE 0 END) as parcel_pice_immediately")
+            DB::raw("count(id) as 'count_id', SUM(COALESCE(parcel_price, parcel_pice)) as 'sum_parcel_pice'"),
+            DB::raw("SUM(CASE WHEN payment_type = 'on_delivery' THEN COALESCE(parcel_price, parcel_pice) ELSE 0 END) as parcel_pice_on_delivery"),
+            DB::raw("SUM(CASE WHEN payment_type = 'immediately' THEN COALESCE(parcel_price, parcel_pice) ELSE 0 END) as parcel_pice_immediately")
         )
         ->get()
         ->toArray();
@@ -198,7 +198,7 @@ class DashboardController extends Controller
                         "customer_name" =>$value['customer_name']." (".$value['customer_mobile'].")",
                         "receive_name" =>$item['receive_name']." (".$item['receive_mobile'].")",
                         "province_name" =>$address,
-                        "parcel_pice" =>$item['parcel_pice'],
+                        "parcel_pice" =>isset($item['parcel_price']) ? $item['parcel_price'] : $item['parcel_pice'],
                         "payment_type_id" => $item['payment_type'],
                         "payment_type" =>$payment_type[$item['payment_type']]??"จัดส่งปกติ",
                         "parcel_pickup_type" =>$parcel_pickup_type[$item['parcel_pickup_type']],

@@ -227,7 +227,11 @@ class TripController extends Controller
             'delivery_status' => ['required', Rule::in(TripItem::deliveryStatuses())],
             'failed_reason' => ['required_if:delivery_status,' . TripItem::DELIVERY_STATUS_FAILED, 'nullable', 'string', 'max:255'],
             'note' => ['nullable', 'string'],
-        ], [], [
+        ], [
+            'required' => ':attribute จำเป็นต้องกรอก',
+            'required_if' => ':attribute จำเป็นต้องกรอกเมื่อจัดส่งไม่สำเร็จ',
+            'max' => ':attribute ยาวเกินไป',
+        ], [
             'delivery_status' => 'สถานะจัดส่ง',
             'failed_reason' => 'เหตุผลที่จัดส่งไม่สำเร็จ',
             'note' => 'หมายเหตุ',
@@ -254,7 +258,11 @@ class TripController extends Controller
             'payment_status' => ['required', Rule::in(TripItem::paymentStatuses())],
             'collected_amount' => ['nullable', 'numeric', 'min:0'],
             'note' => ['nullable', 'string'],
-        ], [], [
+        ], [
+            'required' => ':attribute จำเป็นต้องกรอก',
+            'numeric' => ':attribute ต้องเป็นตัวเลข',
+            'min' => ':attribute ต้องไม่ติดลบ',
+        ], [
             'payment_status' => 'สถานะชำระเงิน',
             'collected_amount' => 'ยอดเก็บเงิน',
             'note' => 'หมายเหตุ',
@@ -280,10 +288,15 @@ class TripController extends Controller
         return $request->validate([
             'trip_date' => ['required', 'date'],
             'driver_name' => ['nullable', 'string', 'max:100'],
-            'driver_mobile' => ['nullable', 'digits_between:9,10'],
+            'driver_mobile' => ['nullable', 'regex:/^\d{9,10}$/'],
             'car_id' => ['nullable', 'string', 'max:100'],
             'area_name' => ['nullable', 'string', 'max:100'],
-        ], [], [
+        ], [
+            'required' => ':attribute จำเป็นต้องกรอก',
+            'date' => ':attribute รูปแบบวันที่ไม่ถูกต้อง',
+            'regex' => ':attribute ต้องเป็นตัวเลข 9 ถึง 10 หลัก',
+            'max' => ':attribute ยาวเกินไป',
+        ], [
             'trip_date' => 'วันที่รอบขนส่ง',
             'driver_name' => 'ชื่อพนักงานขับรถ',
             'driver_mobile' => 'เบอร์โทรศัพท์พนักงานขับรถ',

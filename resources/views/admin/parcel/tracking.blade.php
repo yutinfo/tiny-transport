@@ -62,6 +62,67 @@
                         </dl>
                     </div>
                 </div>
+
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <h3 class="card-title">แจ้งเตือนลูกค้า (Stub)</h3>
+                    </div>
+                    <div class="card-body">
+                        @if(session('success'))
+                            <div class="alert alert-success py-2">{{ session('success') }}</div>
+                        @endif
+
+                        <form action="{{ route('admin.parcels.notifications.store', $parcel) }}" method="POST" class="mb-4">
+                            @csrf
+                            <div class="form-group mb-2">
+                                <label for="channel" class="small">ช่องทาง</label>
+                                <select name="channel" id="channel" class="form-control form-control-sm" required>
+                                    <option value="sms">SMS</option>
+                                    <option value="line">LINE</option>
+                                    <option value="email">Email</option>
+                                    <option value="manual">Manual Log (บันทึกมือ)</option>
+                                </select>
+                            </div>
+                            <div class="form-group mb-2">
+                                <label for="recipient" class="small">ผู้รับ (เบอร์โทร/ไอดี/อีเมล)</label>
+                                <input type="text" name="recipient" id="recipient" value="{{ old('recipient', $parcel->receive_mobile) }}" class="form-control form-control-sm" required>
+                            </div>
+                            <div class="form-group mb-2">
+                                <label for="message" class="small">ข้อความ</label>
+                                <textarea name="message" id="message" rows="2" class="form-control form-control-sm" required placeholder="พิมพ์ข้อความที่ต้องการแจ้งเตือน..."></textarea>
+                            </div>
+                            <button type="submit" class="btn bg-primary btn-sm btn-block"><i class="fas fa-paper-plane"></i> บันทึกและส่ง (Mock)</button>
+                        </form>
+
+                        <h6 class="font-weight-bold">ประวัติการแจ้งเตือน</h6>
+                        @forelse($notifications as $notify)
+                            <div class="border-bottom py-2">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <span class="badge badge-dark text-uppercase">{{ $notify->channel }}</span>
+                                        @if($notify->status === 'sent')
+                                            <span class="badge badge-success">ส่งแล้ว</span>
+                                        @elseif($notify->status === 'failed')
+                                            <span class="badge badge-danger">ล้มเหลว</span>
+                                        @elseif($notify->status === 'pending')
+                                            <span class="badge badge-warning">กำลังส่ง</span>
+                                        @else
+                                            <span class="badge badge-secondary">{{ $notify->status }}</span>
+                                        @endif
+                                    </div>
+                                    <small class="text-muted">{{ optional($notify->created_at)->format('Y-m-d H:i') }}</small>
+                                </div>
+                                <div class="small mt-1 text-wrap" style="word-break: break-all;"><strong>ถึง:</strong> {{ $notify->recipient }}</div>
+                                <div class="small mt-1">{{ $notify->message }}</div>
+                                @if($notify->created_by)
+                                    <small class="text-muted d-block mt-1">โดย {{ $notify->created_by }}</small>
+                                @endif
+                            </div>
+                        @empty
+                            <div class="text-center text-muted small py-3">ยังไม่มีประวัติการส่งแจ้งเตือน</div>
+                        @endforelse
+                    </div>
+                </div>
             </div>
             <div class="col-lg-8">
                 <div class="card">

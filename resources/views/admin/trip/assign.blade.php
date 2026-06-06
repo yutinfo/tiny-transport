@@ -106,7 +106,7 @@
                                     <td>{{ $receiver->district_name }} {{ $receiver->amphures_name }} {{ $receiver->province_name }} {{ $receiver->zip_code }}</td>
                                     <td>{{ $receiver->payment_type }}</td>
                                     <td>{{ $receiver->parcel_pickup_type }}</td>
-                                    <td class="text-right">{{ number_format($receiver->parcel_pice, 2) }}</td>
+                                    <td class="text-right">{{ number_format($receiver->getParcelPriceValue(), 2) }}</td>
                                     <td>{{ optional($receiver->created_at)->format('Y-m-d') }}</td>
                                 </tr>
                             @empty

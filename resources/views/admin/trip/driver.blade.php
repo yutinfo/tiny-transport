@@ -29,7 +29,8 @@
                 <div class="row">
                     <div class="col-md-7">
                         <h5 class="font-weight-bold mb-0">Driver View {{ $data->code }}</h5>
-                        <small class="text-muted">{{ optional($data->trip_date)->format('Y-m-d') }} | {{ $data->status_label }}</small>
+                        <small class="text-muted">{{ optional($data->trip_date)->format('Y-m-d') }} | </small>
+                        <span class="badge {{ $data->status_badge_class }}">{{ $data->status_label }}</span>
                     </div>
                     <div class="col-md-5 text-right">
                         <a href="{{ route('admin.trips.show', $data) }}" class="btn bg-secondary"><i class="fas fa-arrow-left"></i> กลับรายละเอียด</a>
@@ -111,8 +112,8 @@
                                     <small class="d-block text-muted">{{ $item->order->code ?? '-' }}</small>
                                 </div>
                                 <div class="text-right">
-                                    <span class="badge badge-info">{{ $item->delivery_status_label }}</span>
-                                    <span class="badge badge-secondary">{{ $item->payment_status_label }}</span>
+                                    <span class="badge {{ $item->delivery_status_badge_class }}">{{ $item->delivery_status_label }}</span>
+                                    <span class="badge {{ $item->payment_status_badge_class }}">{{ $item->payment_status_label }}</span>
                                 </div>
                             </div>
                         </div>

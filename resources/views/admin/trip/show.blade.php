@@ -8,7 +8,8 @@
                 <div class="row">
                     <div class="col-md-6">
                         <h5 class="font-weight-bold mb-0">รอบขนส่ง {{ $data->code }}</h5>
-                        <small class="text-muted">{{ optional($data->trip_date)->format('Y-m-d') }} | {{ $data->status_label }}</small>
+                        <small class="text-muted">{{ optional($data->trip_date)->format('Y-m-d') }} | </small>
+                        <span class="badge {{ $data->status_badge_class }}">{{ $data->status_label }}</span>
                     </div>
                     <div class="col-md-6 text-right">
                         <a href="{{ route('admin.trips.index') }}" class="btn bg-secondary"><i class="fas fa-arrow-left"></i> กลับ</a>
@@ -179,13 +180,13 @@
                     </div>
                     <div class="col-md-6 text-right">
                         @if($data->status === \App\Models\Trip::STATUS_DRAFT)
-                            <form action="{{ route('admin.trips.assign-status', $data) }}" method="POST" class="d-inline">
+                            <form action="{{ route('admin.trips.assign-status', $data) }}" method="POST" class="d-inline" onsubmit="return confirm('ยืนยันการมอบหมายรอบขนส่งนี้?')">
                                 @csrf
                                 <button type="submit" class="btn bg-info btn-sm"><i class="fas fa-user-check"></i> มอบหมายรอบ</button>
                             </form>
                         @endif
                         @if($data->status === \App\Models\Trip::STATUS_ASSIGNED)
-                            <form action="{{ route('admin.trips.start', $data) }}" method="POST" class="d-inline">
+                            <form action="{{ route('admin.trips.start', $data) }}" method="POST" class="d-inline" onsubmit="return confirm('ยืนยันการเริ่มจัดส่งรอบขนส่งนี้?')">
                                 @csrf
                                 <button type="submit" class="btn bg-primary btn-sm"><i class="fas fa-play"></i> เริ่มจัดส่ง</button>
                             </form>
@@ -251,8 +252,8 @@
                                 </td>
                                 <td class="text-right">{{ number_format($item->cod_amount, 2) }}</td>
                                 <td class="text-right">{{ number_format($item->collected_amount, 2) }}</td>
-                                <td><span class="badge badge-info">{{ $item->delivery_status_label }}</span></td>
-                                <td><span class="badge badge-secondary">{{ $item->payment_status_label }}</span></td>
+                                <td><span class="badge {{ $item->delivery_status_badge_class }}">{{ $item->delivery_status_label }}</span></td>
+                                <td><span class="badge {{ $item->payment_status_badge_class }}">{{ $item->payment_status_label }}</span></td>
                                 <td>
                                     @if($receiver)
                                         <a href="{{ route('admin.parcels.tracking', $receiver) }}" class="btn bg-secondary btn-xs mb-2"><i class="fas fa-history"></i> ดูประวัติ</a>

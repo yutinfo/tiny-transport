@@ -59,7 +59,11 @@ class DriverTripController extends Controller
             ],
             'failed_reason' => ['required_if:delivery_status,' . TripItem::DELIVERY_STATUS_FAILED, 'nullable', 'string', 'max:255'],
             'note' => ['nullable', 'string', 'max:1000'],
-        ], [], [
+        ], [
+            'required' => ':attribute จำเป็นต้องกรอก',
+            'required_if' => ':attribute จำเป็นต้องกรอกเมื่อจัดส่งไม่สำเร็จ',
+            'max' => ':attribute ยาวเกินไป',
+        ], [
             'delivery_status' => 'สถานะจัดส่ง',
             'failed_reason' => 'เหตุผลที่จัดส่งไม่สำเร็จ',
             'note' => 'หมายเหตุ',
@@ -88,7 +92,11 @@ class DriverTripController extends Controller
             'payment_status' => ['required', Rule::in([TripItem::PAYMENT_STATUS_PAID])],
             'collected_amount' => ['nullable', 'numeric', 'min:0'],
             'note' => ['nullable', 'string', 'max:1000'],
-        ], [], [
+        ], [
+            'required' => ':attribute จำเป็นต้องกรอก',
+            'numeric' => ':attribute ต้องเป็นตัวเลข',
+            'min' => ':attribute ต้องไม่ติดลบ',
+        ], [
             'payment_status' => 'สถานะชำระเงิน',
             'collected_amount' => 'ยอดเก็บเงิน',
             'note' => 'หมายเหตุ',

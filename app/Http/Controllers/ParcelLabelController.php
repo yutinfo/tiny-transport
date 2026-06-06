@@ -59,7 +59,7 @@ class ParcelLabelController extends Controller
                 $receiver->zip_code,
             ]))),
             'payment_type' => $this->paymentTypeLabel($receiver->payment_type),
-            'cod_amount' => $receiver->payment_type === 'on_delivery' ? (float) $receiver->parcel_pice : null,
+            'cod_amount' => $receiver->payment_type === 'on_delivery' ? (float) $receiver->getParcelPriceValue() : null,
             'pickup_type' => $this->pickupTypeLabel($receiver->parcel_pickup_type),
             'created_date' => optional($receiver->created_at)->format('Y-m-d'),
             'order_code' => $order->code ?? '-',

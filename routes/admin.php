@@ -73,6 +73,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/parcels/search', [App\Http\Controllers\ParcelTrackingController::class, 'search'])->name('admin.parcels.search');
     Route::get('/parcels/code/{parcelCode}', [App\Http\Controllers\ParcelTrackingController::class, 'code'])->name('admin.parcels.code');
     Route::get('/parcels/{orderReceive}/tracking', [App\Http\Controllers\ParcelTrackingController::class, 'show'])->name('admin.parcels.tracking');
+    Route::post('/parcels/{orderReceive}/notifications', [App\Http\Controllers\ParcelTrackingController::class, 'storeNotification'])->name('admin.parcels.notifications.store');
     Route::prefix('dashboard')->middleware('admin')->group(function () {
 
         Route::get('/', [App\Http\Controllers\DashboardController::class, 'index'])->name('admin.dashboard');

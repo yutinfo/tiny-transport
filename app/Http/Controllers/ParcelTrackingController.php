@@ -49,6 +49,7 @@ class ParcelTrackingController extends Controller
             'order',
             'statusLogs.trip',
             'tripItems.trip',
+            'notifications',
         ]);
 
         $currentTripItem = $orderReceive->tripItems()
@@ -65,8 +66,36 @@ class ParcelTrackingController extends Controller
                 ['created_at', 'asc'],
                 ['id', 'asc'],
             ]),
+            'notifications' => $orderReceive->notifications->sortByDesc('created_at'),
             'deliveryStatusLabels' => TripItem::deliveryStatusLabels(),
             'paymentStatusLabels' => TripItem::paymentStatusLabels(),
         ]);
+    }
+
+    public function storeNotification(OrderReceive $orderReceive, Request $request)
+    {
+        $data = $request->validate([
+            'channel' => ['required', 'in:sms,line,email,manual'],
+            'recipient' => ['required', 'string', 'max:100'],
+            'message' => ['required', 'string', 'max:1000'],
+        ], [
+            'required' => ':attribute จำเป็นต้องกรอก',
+            'in' => 'ช่องทางที่ระบุไม่ถูกต้อง',
+            'max' => ':attribute ยาวเกินไป',
+        ], [
+            'channel' => 'ช่องทางแจ้งเตือน',
+            'recipient' => 'ผู้รับ',
+            'message' => 'ข้อความ',
+        ]);
+
+        $notification = $orderReceive->notifications()->create(array_merge($data, [
+            'status' => 'pending',
+            'created_by' => auth()->user()->name ?? 'System',
+        ]));
+
+        $service = app(\App\Services\ParcelNotificationService::class);
+        $service->send($notification);
+
+        return redirect()->back()->with('success', 'บันทึกประวัติการแจ้งเตือนสำเร็จ');
     }
 }

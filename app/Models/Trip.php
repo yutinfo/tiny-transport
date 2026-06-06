@@ -88,7 +88,18 @@ class Trip extends Model
 
     public function getStatusLabelAttribute(): string
     {
-        return self::statusLabel($this->status);
+        return $this->statusLabel($this->status);
+    }
+
+    public function getStatusBadgeClassAttribute(): string
+    {
+        return [
+            self::STATUS_DRAFT => 'badge-secondary',
+            self::STATUS_ASSIGNED => 'badge-info',
+            self::STATUS_IN_TRANSIT => 'badge-primary',
+            self::STATUS_COMPLETED => 'badge-success',
+            self::STATUS_CANCELLED => 'badge-danger',
+        ][$this->status] ?? 'badge-secondary';
     }
 
     public static function generateCode($date = null): string

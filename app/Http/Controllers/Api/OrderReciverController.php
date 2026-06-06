@@ -92,7 +92,7 @@ class OrderReciverController extends Controller
                 $remainingReceivers = $order->receivers()->get();
                 $order->update([
                     'parcel_amount' => $remainingReceivers->count(),
-                    'parcel_total' => $remainingReceivers->sum('parcel_pice'),
+                    'parcel_total' => $remainingReceivers->sum(fn ($r) => $r->getParcelPriceValue()),
                 ]);
             }
 

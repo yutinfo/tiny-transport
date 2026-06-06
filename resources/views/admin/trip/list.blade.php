@@ -125,7 +125,7 @@
                                 <td class="text-right">{{ number_format($trip->total_parcels) }}</td>
                                 <td class="text-right">{{ number_format($trip->total_cod_amount, 2) }}</td>
                                 <td class="text-right">{{ number_format($trip->collected_amount, 2) }}</td>
-                                <td><span class="badge badge-info">{{ $trip->status_label }}</span></td>
+                                <td><span class="badge {{ $trip->status_badge_class }}">{{ $trip->status_label }}</span></td>
                                 <td class="text-right">
                                     <a href="{{ route('admin.trips.show', $trip) }}" class="btn bg-primary btn-xs"><i class="fas fa-eye"></i> ดู</a>
                                     <a href="{{ route('admin.trips.driver', $trip) }}" class="btn bg-success btn-xs"><i class="fas fa-mobile-alt"></i> Driver</a>

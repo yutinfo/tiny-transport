@@ -61,7 +61,7 @@ class TripService
                 'parcel_code' => $receiver->parcel_code,
                 'delivery_status' => $deliveryStatus,
                 'payment_status' => $paymentStatus,
-                'cod_amount' => $receiver->payment_type === 'on_delivery' ? $receiver->parcel_pice : 0,
+                'cod_amount' => $receiver->payment_type === 'on_delivery' ? $receiver->getParcelPriceValue() : 0,
                 'collected_amount' => 0,
                 'created_by' => $createdBy,
             ]);
@@ -74,6 +74,14 @@ class TripService
                 'เพิ่มเข้ารอบขนส่ง ' . $trip->code,
                 $createdBy
             );
+
+            // Hook for notification stub
+            try {
+                $notificationService = app(\App\Services\ParcelNotificationService::class);
+                $notificationService->createPendingNotification($receiver, 'sms', 'assigned_to_trip');
+            } catch (\Exception $e) {
+                logger()->error('Failed to create assigned_to_trip notification: ' . $e->getMessage());
+            }
 
             $this->recalculateTotals($trip);
 
@@ -161,7 +169,7 @@ class TripService
         $trip = $trip->fresh(['tripItems.orderReceive', 'costs']) ?: $trip;
 
         $revenue = $trip->tripItems->sum(function (TripItem $item) {
-            return (float) ($item->orderReceive->parcel_pice ?? 0);
+            return (float) ($item->orderReceive ? $item->orderReceive->getParcelPriceValue() : 0);
         });
         $totalCost = $trip->costs->sum(fn (TripCost $cost) => (float) $cost->amount);
 
@@ -184,6 +192,18 @@ class TripService
                 'updated_by' => $updatedBy,
             ]);
             $trip->save();
+
+            // Hook for notification stub: notify for all items
+            try {
+                $notificationService = app(\App\Services\ParcelNotificationService::class);
+                foreach ($trip->tripItems as $item) {
+                    if ($item->orderReceive) {
+                        $notificationService->createPendingNotification($item->orderReceive, 'sms', 'out_for_delivery');
+                    }
+                }
+            } catch (\Exception $e) {
+                logger()->error('Failed to create out_for_delivery notifications: ' . $e->getMessage());
+            }
 
             return $trip->refresh();
         });
@@ -270,6 +290,20 @@ class TripService
             ]);
 
             $this->createStatusLog($tripItem->orderReceive, $tripItem->trip, $fromStatus, $status, $note, $updatedBy);
+
+            // Hook for notification stub
+            try {
+                $notificationService = app(\App\Services\ParcelNotificationService::class);
+                if ($status === TripItem::DELIVERY_STATUS_DELIVERED) {
+                    $notificationService->createPendingNotification($tripItem->orderReceive, 'sms', 'delivered');
+                } elseif ($status === TripItem::DELIVERY_STATUS_FAILED) {
+                    $notificationService->createPendingNotification($tripItem->orderReceive, 'sms', 'failed');
+                } elseif ($status === TripItem::DELIVERY_STATUS_IN_TRANSIT) {
+                    $notificationService->createPendingNotification($tripItem->orderReceive, 'sms', 'out_for_delivery');
+                }
+            } catch (\Exception $e) {
+                logger()->error('Failed to create status update notification: ' . $e->getMessage());
+            }
 
             return $tripItem->refresh();
         });

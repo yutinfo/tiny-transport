@@ -43,7 +43,9 @@ class OrderReceive extends Model
         'order_id' => 'int',
         'province_id' => 'int',
         'amphures_id' => 'int',
-        'district_id' => 'int'
+        'district_id' => 'int',
+        'parcel_price' => 'decimal:2',
+        'parcel_pice' => 'decimal:2',
     ];
 
     protected $fillable = [
@@ -65,9 +67,63 @@ class OrderReceive extends Model
         "delivery_status",
         "payment_status",
         "parcel_pice",
+        "parcel_price",
         "created_by",
         "updated_by",
     ];
+
+    /**
+     * Get the parcel price.
+     * Fallback to parcel_pice if parcel_price is null.
+     */
+    public function getParcelPriceAttribute($value)
+    {
+        return $value !== null ? $value : $this->parcel_pice;
+    }
+
+    /**
+     * Get the parcel price value using the helper method.
+     */
+    public function getParcelPriceValue()
+    {
+        return $this->parcel_price !== null ? (float) $this->parcel_price : (float) $this->parcel_pice;
+    }
+
+    /**
+     * Set the parcel price attribute.
+     * Also updates parcel_pice for backward-compatibility.
+     */
+    public function setParcelPriceAttribute($value)
+    {
+        $this->attributes['parcel_price'] = $value;
+        $this->attributes['parcel_pice'] = $value;
+    }
+
+    /**
+     * Set the parcel pice attribute.
+     * Also updates parcel_price for backward-compatibility.
+     */
+    public function setParcelPiceAttribute($value)
+    {
+        $this->attributes['parcel_pice'] = $value;
+        $this->attributes['parcel_price'] = $value;
+    }
+
+    /**
+     * Set delivery status attribute, defaulting to 'waiting' if null.
+     */
+    public function setDeliveryStatusAttribute($value)
+    {
+        $this->attributes['delivery_status'] = $value ?? 'waiting';
+    }
+
+    /**
+     * Set payment status attribute, defaulting to 'waiting' if null.
+     */
+    public function setPaymentStatusAttribute($value)
+    {
+        $this->attributes['payment_status'] = $value ?? 'waiting';
+    }
 
     public function order()
     {
@@ -82,5 +138,10 @@ class OrderReceive extends Model
     public function statusLogs()
     {
         return $this->hasMany(ParcelStatusLog::class);
+    }
+
+    public function notifications()
+    {
+        return $this->hasMany(ParcelNotification::class);
     }
 }

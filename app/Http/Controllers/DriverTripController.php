@@ -80,7 +80,18 @@ class DriverTripController extends Controller
         ]);
     }
 
-    public function updateDeliveryStatus(TripItem $tripItem, Request $request)
+    private function ensureDriverOwnsTripItem(TripItem $tripItem): TripItem
+    {
+        $tripItem = $tripItem->fresh(['trip']) ?: $tripItem;
+
+        if (! $tripItem->trip || (int) $tripItem->trip->driver_user_id !== (int) Auth::id()) {
+            abort(403);
+        }
+
+        return $tripItem;
+    }
+
+    private function handleDeliveryStatusUpdate(TripItem $tripItem, Request $request): void
     {
         $request->validate([
             'delivery_status' => [
@@ -103,14 +114,19 @@ class DriverTripController extends Controller
             'note' => 'หมายเหตุ',
         ]);
 
+        $this->tripService->updateDeliveryStatus(
+            $tripItem,
+            $request->delivery_status,
+            $request->note,
+            $request->failed_reason,
+            $this->userName()
+        );
+    }
+
+    public function updateDeliveryStatus(TripItem $tripItem, Request $request)
+    {
         try {
-            $this->tripService->updateDeliveryStatus(
-                $tripItem,
-                $request->delivery_status,
-                $request->note,
-                $request->failed_reason,
-                $this->userName()
-            );
+            $this->handleDeliveryStatusUpdate($tripItem, $request);
         } catch (InvalidArgumentException $exception) {
             return redirect()->back()->withInput()->withErrors(['delivery_status' => $exception->getMessage()]);
         }
@@ -118,7 +134,20 @@ class DriverTripController extends Controller
         return redirect()->route('admin.trips.driver', $tripItem->trip_id)->with('success', 'บันทึกสถานะจัดส่งแล้ว');
     }
 
-    public function updatePaymentStatus(TripItem $tripItem, Request $request)
+    public function updateDriverDeliveryStatus(TripItem $tripItem, Request $request)
+    {
+        $tripItem = $this->ensureDriverOwnsTripItem($tripItem);
+
+        try {
+            $this->handleDeliveryStatusUpdate($tripItem, $request);
+        } catch (InvalidArgumentException $exception) {
+            return redirect()->back()->withInput()->withErrors(['delivery_status' => $exception->getMessage()]);
+        }
+
+        return redirect()->route('driver.trips.show', $tripItem->trip_id)->with('success', 'บันทึกสถานะจัดส่งแล้ว');
+    }
+
+    private function handlePaymentStatusUpdate(TripItem $tripItem, Request $request): void
     {
         $tripItem = $tripItem->fresh(['trip']) ?: $tripItem;
 
@@ -137,26 +166,44 @@ class DriverTripController extends Controller
         ]);
 
         if ((float) $tripItem->cod_amount <= 0) {
-            return redirect()->back()->withInput()->withErrors(['payment_status' => 'พัสดุนี้ไม่มียอด COD ให้เก็บ']);
+            throw new InvalidArgumentException('พัสดุนี้ไม่มียอด COD ให้เก็บ');
         }
 
         if ($tripItem->delivery_status !== TripItem::DELIVERY_STATUS_DELIVERED) {
-            return redirect()->back()->withInput()->withErrors(['payment_status' => 'เก็บเงิน COD ได้หลังจัดส่งสำเร็จเท่านั้น']);
+            throw new InvalidArgumentException('เก็บเงิน COD ได้หลังจัดส่งสำเร็จเท่านั้น');
         }
 
+        $this->tripService->updatePaymentCollection(
+            $tripItem,
+            $request->payment_status,
+            $request->input('collected_amount', $tripItem->cod_amount),
+            $request->note,
+            $this->userName()
+        );
+    }
+
+    public function updatePaymentStatus(TripItem $tripItem, Request $request)
+    {
         try {
-            $this->tripService->updatePaymentCollection(
-                $tripItem,
-                $request->payment_status,
-                $request->input('collected_amount', $tripItem->cod_amount),
-                $request->note,
-                $this->userName()
-            );
+            $this->handlePaymentStatusUpdate($tripItem, $request);
         } catch (InvalidArgumentException $exception) {
             return redirect()->back()->withInput()->withErrors(['payment_status' => $exception->getMessage()]);
         }
 
         return redirect()->route('admin.trips.driver', $tripItem->trip_id)->with('success', 'บันทึกการเก็บเงินแล้ว');
+    }
+
+    public function updateDriverPaymentStatus(TripItem $tripItem, Request $request)
+    {
+        $tripItem = $this->ensureDriverOwnsTripItem($tripItem);
+
+        try {
+            $this->handlePaymentStatusUpdate($tripItem, $request);
+        } catch (InvalidArgumentException $exception) {
+            return redirect()->back()->withInput()->withErrors(['payment_status' => $exception->getMessage()]);
+        }
+
+        return redirect()->route('driver.trips.show', $tripItem->trip_id)->with('success', 'บันทึกการเก็บเงินแล้ว');
     }
 
     private function failedReasons(): array

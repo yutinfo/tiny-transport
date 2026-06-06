@@ -14,6 +14,10 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/', function () {
+    if (auth()->check() && auth()->user()->isDriver()) {
+        return redirect()->route('driver.dashboard');
+    }
+
     return redirect('admin');
 });
 Route::get('/login', [App\Http\Controllers\LoginController::class, 'show'])->name('login.show');

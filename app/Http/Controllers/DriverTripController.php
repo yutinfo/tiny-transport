@@ -16,6 +16,35 @@ class DriverTripController extends Controller
     {
     }
 
+    public function index()
+    {
+        $trips = Trip::query()
+            ->where('driver_user_id', Auth::id())
+            ->whereNotIn('status', [Trip::STATUS_COMPLETED, Trip::STATUS_CANCELLED])
+            ->orderByDesc('trip_date')
+            ->orderByDesc('id')
+            ->withCount('tripItems')
+            ->paginate(10);
+
+        return view('driver.trips.index', [
+            'trips' => $trips,
+        ]);
+    }
+
+    public function showDriverTrip(Trip $trip)
+    {
+        $this->ensureDriverOwnsTrip($trip);
+
+        return $this->show($trip);
+    }
+
+    private function ensureDriverOwnsTrip(Trip $trip): void
+    {
+        if ((int) $trip->driver_user_id !== (int) Auth::id()) {
+            abort(403);
+        }
+    }
+
     public function show(Trip $trip)
     {
         $trip->load([

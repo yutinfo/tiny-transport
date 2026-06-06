@@ -46,12 +46,15 @@ class LoginController extends Controller
 
     protected function authenticated(Request $request, $user)
     {
-        if($user->role_name=='admin'){
-            return redirect()->intended();
-        }else{
-            return redirect()->route('admin.orders.create');
+        if ($user->isAdmin()) {
+            return redirect()->intended(route('admin.dashboard'));
         }
 
+        if ($user->isDriver()) {
+            return redirect()->intended(route('driver.dashboard'));
+        }
+
+        return redirect()->intended(route('admin.orders.create'));
     }
 
     protected function ensureIsNotRateLimited(LoginRequest $request)

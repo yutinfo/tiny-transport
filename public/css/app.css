@@ -41589,8 +41589,8 @@ a:hover {
   border-left: 1px solid rgba(226, 232, 240, 0.7);
 }
 
-.content {
-  padding: 0 1rem 1.5rem;
+.content-wrapper > .content {
+  padding: 1.25rem 1rem 1.5rem;
 }
 
 .container-fluid, .container-sm, .container-md, .container-lg, .container-xl {
@@ -41676,7 +41676,7 @@ a:hover {
 }
 
 .content-header {
-  padding: 1rem 0 0.75rem;
+  padding: 0 0 0.75rem;
 }
 
 .content-header .card {
@@ -42232,9 +42232,12 @@ textarea.form-control {
   transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
 }
 .dashboard-page .dashboard-metric:hover {
-  transform: translateY(-1px);
-  border-color: rgba(37, 99, 235, 0.25);
-  box-shadow: var(--ta-shadow-md);
+  transform: translateY(-3px);
+  border-color: var(--dashboard-metric-accent, var(--ta-primary));
+  box-shadow: 0 10px 20px rgba(15, 23, 42, 0.08);
+}
+.dashboard-page .progress-bar {
+  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 .dashboard-page .dashboard-metric .card-body {
   padding: 0.85rem 0.9rem;

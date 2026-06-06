@@ -6,6 +6,7 @@
 <link rel="stylesheet" href="/plugins/datatables-bs4/css/dataTables.bootstrap4.min.css">
 <link rel="stylesheet" href="/plugins/datatables-responsive/css/responsive.bootstrap4.min.css">
 <link rel="stylesheet" href="/plugins/datatables-buttons/css/buttons.bootstrap4.min.css">
+<link rel="stylesheet" href="/plugins/chart.js/Chart.min.css">
 @endsection
 
 @section('third_party_scripts')
@@ -22,11 +23,10 @@
 <script src="/plugins/datatables-buttons/js/buttons.html5.min.js"></script>
 <script src="/plugins/datatables-buttons/js/buttons.print.min.js"></script>
 <script src="/plugins/datatables-buttons/js/buttons.colVis.min.js"></script>
-
-
 <script src="/plugins/jszip/jszip.min.js"></script>
 <script src="/plugins/pdfmake/pdfmake.min.js"></script>
 <script src="/plugins/pdfmake/vfs_fonts.js"></script>
+<script src="/plugins/chart.js/Chart.min.js"></script>
 @endsection
 
 @section('content')
@@ -57,6 +57,7 @@
             'icon' => 'fas fa-money-bill-alt',
             'theme' => 'warning',
             'note' => 'ชำระทันที',
+            'progress' => (float) Arr::get($data, 'sum_parcel_pice', 0) > 0 ? (Arr::get($data, 'parcel_pice_immediately', 0) / Arr::get($data, 'sum_parcel_pice', 0)) * 100 : 0,
         ],
         [
             'label' => 'เก็บเงินปลายทาง',
@@ -64,9 +65,10 @@
             'icon' => 'fas fa-money-check',
             'theme' => 'danger',
             'note' => 'ยอด COD จากพัสดุที่รอเก็บ',
+            'progress' => (float) Arr::get($data, 'sum_parcel_pice', 0) > 0 ? (Arr::get($data, 'parcel_pice_on_delivery', 0) / Arr::get($data, 'sum_parcel_pice', 0)) * 100 : 0,
         ],
     ];
-
+ 
     $operationMetrics = [
         [
             'label' => 'รอบขนส่ง',
@@ -88,6 +90,7 @@
             'icon' => 'fas fa-check',
             'theme' => 'success',
             'note' => 'จำนวนงานที่ปิดจบ',
+            'progress' => ($operationKpis['assigned_count'] ?? 0) > 0 ? (($operationKpis['delivered_count'] ?? 0) / $operationKpis['assigned_count']) * 100 : 0,
         ],
         [
             'label' => 'อัตราส่งสำเร็จ',
@@ -95,6 +98,7 @@
             'icon' => 'fas fa-percentage',
             'theme' => 'dark',
             'note' => 'ประสิทธิภาพการส่ง',
+            'progress' => (float) ($operationKpis['delivery_success_rate'] ?? 0),
         ],
     ];
 
@@ -227,7 +231,12 @@
                                     <i class="{{ $metric['icon'] }}"></i>
                                 </span>
                             </div>
-                            <div class="dashboard-metric__note">{{ $metric['note'] }}</div>
+                            @if(isset($metric['progress']))
+                                <div class="progress mt-2" style="height: 4px; border-radius: 2px; background: rgba(0,0,0,0.06);">
+                                    <div class="progress-bar bg-{{ $metric['theme'] }}" role="progressbar" style="width: {{ $metric['progress'] }}%" aria-valuenow="{{ $metric['progress'] }}" aria-valuemin="0" aria-valuemax="100"></div>
+                                </div>
+                            @endif
+                            <div class="dashboard-metric__note mt-1">{{ $metric['note'] }}</div>
                         </div>
                     </div>
                 </div>
@@ -248,7 +257,12 @@
                                     <i class="{{ $metric['icon'] }}"></i>
                                 </span>
                             </div>
-                            <div class="dashboard-metric__note">{{ $metric['note'] }}</div>
+                            @if(isset($metric['progress']))
+                                <div class="progress mt-2" style="height: 4px; border-radius: 2px; background: rgba(0,0,0,0.06);">
+                                    <div class="progress-bar bg-{{ $metric['theme'] === 'dark' ? 'primary' : $metric['theme'] }}" role="progressbar" style="width: {{ $metric['progress'] }}%" aria-valuenow="{{ $metric['progress'] }}" aria-valuemin="0" aria-valuemax="100"></div>
+                                </div>
+                            @endif
+                            <div class="dashboard-metric__note mt-1">{{ $metric['note'] }}</div>
                         </div>
                     </div>
                 </div>
@@ -257,101 +271,147 @@
     </section>
 
     <div class="row mb-4">
-        <div class="col-lg-4 mb-3">
-            <div class="card dashboard-summary-card h-100">
-                <div class="card-header">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div>
-                            <h3 class="card-title mb-1">สถานะจัดส่ง</h3>
-                            <small class="text-muted">จำนวนพัสดุตามสถานะล่าสุด</small>
-                        </div>
+        <div class="col-lg-8 mb-3">
+            <div class="card h-100">
+                <div class="card-header d-flex align-items-center justify-content-between">
+                    <h3 class="card-title font-weight-bold mb-0">แนวโน้มการจัดส่งพัสดุรายวัน</h3>
+                    <div class="card-tools ml-auto">
+                        <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                            <i class="fas fa-minus"></i>
+                        </button>
                     </div>
                 </div>
-                <div class="card-body p-0">
-                    <table class="table table-sm dashboard-summary-table mb-0">
-                        <tbody>
-                            @foreach($deliveryStatusLabels as $status => $label)
-                                <tr>
-                                    <td>
-                                        <span class="dashboard-status-badge {{ $deliveryBadgeClasses[$status] ?? 'badge-secondary' }}"></span>
-                                        {{ $label }}
-                                    </td>
-                                    <td class="text-right font-weight-bold">{{ number_format((int) ($deliveryBreakdown[$status] ?? 0)) }}</td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
+                <div class="card-body">
+                    <div class="chart">
+                        <canvas id="deliveryTrendChart" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%;"></canvas>
+                    </div>
                 </div>
             </div>
         </div>
         <div class="col-lg-4 mb-3">
-            <div class="card dashboard-summary-card h-100">
-                <div class="card-header">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div>
-                            <h3 class="card-title mb-1">สรุป COD</h3>
-                            <small class="text-muted">ยอดที่ต้องจัดการและยอดที่เก็บได้แล้ว</small>
-                        </div>
+            <div class="card h-100">
+                <div class="card-header d-flex align-items-center justify-content-between">
+                    <h3 class="card-title font-weight-bold mb-0">สถานะจัดส่ง</h3>
+                    <div class="card-tools ml-auto">
+                        <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                            <i class="fas fa-minus"></i>
+                        </button>
                     </div>
                 </div>
-                <div class="card-body p-0">
-                    <table class="table table-sm dashboard-summary-table mb-0">
-                        <tbody>
-                            <tr>
-                                <td>ยอด COD รวม</td>
-                                <td class="text-right font-weight-bold">{{ number_format($codSummary['total_cod_amount'], 2) }}</td>
-                            </tr>
-                            <tr>
-                                <td>ยอดเก็บแล้ว</td>
-                                <td class="text-right font-weight-bold">{{ number_format($codSummary['collected_amount'], 2) }}</td>
-                            </tr>
-                            <tr>
-                                <td>ยอด COD คงเหลือ</td>
-                                <td class="text-right font-weight-bold">{{ number_format($codSummary['remaining_cod_amount'], 2) }}</td>
-                            </tr>
-                        </tbody>
-                    </table>
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-6">
+                            <canvas id="deliveryStatusChart" style="min-height: 160px; height: 160px; max-height: 160px; max-width: 100%;"></canvas>
+                        </div>
+                        <div class="col-6 p-0">
+                            <table class="table table-sm table-borderless mb-0" style="font-size: 0.8rem;">
+                                <tbody>
+                                    @foreach($deliveryStatusLabels as $status => $label)
+                                        <tr>
+                                            <td class="p-1">
+                                                <span class="dashboard-status-badge {{ $deliveryBadgeClasses[$status] ?? 'badge-secondary' }}"></span>
+                                                {{ $label }}
+                                            </td>
+                                            <td class="p-1 text-right font-weight-bold">{{ number_format((int) ($deliveryBreakdown[$status] ?? 0)) }}</td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-        <div class="col-lg-4 mb-3">
-            <div class="card dashboard-summary-card h-100">
-                <div class="card-header">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div>
-                            <h3 class="card-title mb-1">รอบขนส่งตามสถานะ</h3>
-                            <small class="text-muted">สรุปจำนวนรอบแยกตามสถานะงาน</small>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-lg-6 mb-3">
+            <div class="card h-100">
+                <div class="card-header d-flex align-items-center justify-content-between">
+                    <h3 class="card-title font-weight-bold mb-0">ความคืบหน้าการเก็บเงินปลายทาง (COD)</h3>
+                    <div class="card-tools ml-auto">
+                        <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                            <i class="fas fa-minus"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-6">
+                            <canvas id="codChart" style="min-height: 160px; height: 160px; max-height: 160px; max-width: 100%;"></canvas>
+                        </div>
+                        <div class="col-6">
+                            <table class="table table-sm table-borderless mb-0" style="font-size: 0.85rem;">
+                                <tbody>
+                                    <tr>
+                                        <td class="p-1 text-muted">ยอด COD รวม</td>
+                                        <td class="p-1 text-right font-weight-bold text-primary">{{ number_format($codSummary['total_cod_amount'], 2) }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="p-1 text-muted">ยอดเก็บแล้ว</td>
+                                        <td class="p-1 text-right font-weight-bold text-success">{{ number_format($codSummary['collected_amount'], 2) }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="p-1 text-muted">ยอด COD คงเหลือ</td>
+                                        <td class="p-1 text-right font-weight-bold text-danger">{{ number_format($codSummary['remaining_cod_amount'], 2) }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
-                <div class="card-body p-0">
-                    <table class="table table-sm dashboard-summary-table mb-0">
-                        <tbody>
-                            @foreach($tripStatusLabels as $status => $label)
-                                <tr>
-                                    <td>
-                                        <span class="dashboard-status-badge {{ $tripBadgeClasses[$status] ?? 'badge-secondary' }}"></span>
-                                        {{ $label }}
-                                    </td>
-                                    <td class="text-right font-weight-bold">{{ number_format((int) ($tripsByStatus[$status] ?? 0)) }}</td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
+            </div>
+        </div>
+        <div class="col-lg-6 mb-3">
+            <div class="card h-100">
+                <div class="card-header d-flex align-items-center justify-content-between">
+                    <h3 class="card-title font-weight-bold mb-0">รอบขนส่งตามสถานะ</h3>
+                    <div class="card-tools ml-auto">
+                        <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                            <i class="fas fa-minus"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-6">
+                            <canvas id="tripsChart" style="min-height: 160px; height: 160px; max-height: 160px; max-width: 100%;"></canvas>
+                        </div>
+                        <div class="col-6">
+                            <table class="table table-sm table-borderless mb-0" style="font-size: 0.8rem;">
+                                <tbody>
+                                    @foreach($tripStatusLabels as $status => $label)
+                                        <tr>
+                                            <td class="p-1">
+                                                <span class="dashboard-status-badge {{ $tripBadgeClasses[$status] ?? 'badge-secondary' }}"></span>
+                                                {{ $label }}
+                                            </td>
+                                            <td class="p-1 text-right font-weight-bold">{{ number_format((int) ($tripsByStatus[$status] ?? 0)) }}</td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
     <section class="card dashboard-recent-card mb-4">
-        <div class="card-header d-flex flex-wrap justify-content-between align-items-center">
+        <div class="card-header d-flex flex-wrap align-items-center">
             <div>
                 <h3 class="card-title mb-1">รอบขนส่งล่าสุด</h3>
                 <small class="text-muted">10 รายการล่าสุดในช่วงวันที่เลือก</small>
             </div>
-            <a href="{{ route('admin.trips.index', request()->only(['date_from', 'date_to', 'driver_name', 'status'])) }}" class="btn btn-default btn-sm mt-2 mt-sm-0">
-                <i class="fas fa-list"></i> ดูทุกรอบ
-            </a>
+            <div class="card-tools ml-auto d-flex align-items-center">
+                <a href="{{ route('admin.trips.index', request()->only(['date_from', 'date_to', 'driver_name', 'status'])) }}" class="btn btn-default btn-sm mr-2 mt-2 mt-sm-0">
+                    <i class="fas fa-list"></i> ดูทุกรอบ
+                </a>
+                <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                    <i class="fas fa-minus"></i>
+                </button>
+            </div>
         </div>
         <div class="card-body p-0 table-responsive">
             <table class="table table-hover table-striped mb-0 dashboard-table">
@@ -406,14 +466,21 @@
                     <h3 class="card-title mb-1">รายงานพัสดุ</h3>
                     <small class="text-muted">ค้นหาพัสดุแบบละเอียดตามจังหวัดและวันที่</small>
                 </div>
-                <div class="dashboard-report-summary">
-                    <div class="dashboard-mini-stat">
-                        <span>รวมจ่ายทันที</span>
-                        <strong>{{ number_format($reportTotals['immediately'], 2) }}</strong>
+                <div class="d-flex align-items-center">
+                    <div class="dashboard-report-summary">
+                        <div class="dashboard-mini-stat">
+                            <span>รวมจ่ายทันที</span>
+                            <strong>{{ number_format($reportTotals['immediately'], 2) }}</strong>
+                        </div>
+                        <div class="dashboard-mini-stat">
+                            <span>รวมเก็บเงินปลายทาง</span>
+                            <strong>{{ number_format($reportTotals['on_delivery'], 2) }}</strong>
+                        </div>
                     </div>
-                    <div class="dashboard-mini-stat">
-                        <span>รวมเก็บเงินปลายทาง</span>
-                        <strong>{{ number_format($reportTotals['on_delivery'], 2) }}</strong>
+                    <div class="card-tools ml-2">
+                        <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                            <i class="fas fa-minus"></i>
+                        </button>
                     </div>
                 </div>
             </div>

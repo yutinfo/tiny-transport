@@ -49,8 +49,8 @@ a:hover {
     border-left: 1px solid rgba(226, 232, 240, .7);
 }
 
-.content {
-    padding: 0 1rem 1.5rem;
+.content-wrapper > .content {
+    padding: 1.25rem 1rem 1.5rem;
 }
 
 .container-fluid {
@@ -136,7 +136,7 @@ a:hover {
 }
 
 .content-header {
-    padding: 1rem 0 .75rem;
+    padding: 0 0 .75rem;
 }
 
 .content-header .card {
@@ -717,9 +717,13 @@ textarea.form-control {
     }
 
     .dashboard-metric:hover {
-        transform: translateY(-1px);
-        border-color: rgba(37, 99, 235, .25);
-        box-shadow: var(--ta-shadow-md);
+        transform: translateY(-3px);
+        border-color: var(--dashboard-metric-accent, var(--ta-primary));
+        box-shadow: 0 10px 20px rgba(15, 23, 42, 0.08);
+    }
+
+    .progress-bar {
+        transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1) !important;
     }
 
     .dashboard-metric .card-body {

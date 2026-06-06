@@ -1,4 +1,10 @@
 {
-    "/js/app.js": "/js/app.js",
-    "/css/app.css": "/css/app.css"
+    "/js/app.js": "/js/app.js?id=7c29f77e59fc3628c771bf8303858c1f",
+    "/css/app.css": "/css/app.css?id=d01482e80e1e46252bfbe43dc035cba3",
+    "/plugins/chart.js/Chart.bundle.js": "/plugins/chart.js/Chart.bundle.js?id=cda1cb9319dc70d4cb41ce6c9164740b",
+    "/plugins/chart.js/Chart.bundle.min.js": "/plugins/chart.js/Chart.bundle.min.js?id=2ef089205edd1cf2c7953f54ceca8670",
+    "/plugins/chart.js/Chart.css": "/plugins/chart.js/Chart.css?id=5d952d15b0234f260dc95c0aa1feef70",
+    "/plugins/chart.js/Chart.js": "/plugins/chart.js/Chart.js?id=ff2c8fa2e8f8c348765b8072a78ff161",
+    "/plugins/chart.js/Chart.min.css": "/plugins/chart.js/Chart.min.css?id=7d8693e997109f2aeac04066301679d6",
+    "/plugins/chart.js/Chart.min.js": "/plugins/chart.js/Chart.min.js?id=9b1ae20c4c7048d6e4a1b2e1aee7fb31"
 }

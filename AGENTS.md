@@ -22,14 +22,16 @@ Guidance for Codex and other AI agents working in this repository.
 
 Use the commands that match the change being made:
 
+Important for AI agents: run all PHP-related commands inside Docker only. Do not run local `php`, `php artisan`, or `composer` commands on the host machine; this project environment is expected to be available through the Docker `app` service, and host PHP commands may fail and waste time/tokens.
+
 ```bash
-composer install
+docker compose exec app composer install
 npm install
-php artisan test
+docker compose exec app php artisan test
 npm run dev
 npm run prod
-php artisan migrate
-php artisan db:seed
+docker compose exec app php artisan migrate
+docker compose exec app php artisan db:seed
 ```
 
 Docker workflow from `README.md`:
@@ -63,9 +65,9 @@ docker compose down
 
 Before finishing a code change, run the narrowest useful validation first, then broader checks if risk is higher:
 
-- PHP behavior: `php artisan test`
+- PHP behavior: `docker compose exec app php artisan test`
 - Frontend assets: `npm run dev` for development builds, `npm run prod` for production asset checks
-- Database changes: relevant `php artisan migrate`, `php artisan migrate:fresh --seed`, or Docker equivalents
+- Database changes: relevant Docker-based commands such as `docker compose exec app php artisan migrate` or `docker compose exec app php artisan migrate:fresh --seed`
 - Manual UI checks: login/register, admin navigation, dashboards, forms, tables, alerts, and changed pages
 
 If a command cannot be run, report the reason and the remaining risk.

@@ -98,6 +98,7 @@ class DashboardController extends Controller
             'codSummary' => $operationData['cod_summary'],
             'tripsByStatus' => $operationData['trips_by_status'],
             'recentTrips' => $operationData['recent_trips'],
+            'dailyTrend' => $operationData['daily_trend'],
             'tripStatusLabels' => Trip::statusLabels(),
             'deliveryStatusLabels' => TripItem::deliveryStatusLabels(),
         ]);
@@ -281,6 +282,26 @@ class DashboardController extends Controller
             ->limit(10)
             ->get();
 
+        $dailyTrendRaw = (clone $itemQuery)
+            ->join('trips', 'trip_items.trip_id', '=', 'trips.id')
+            ->select(
+                'trips.trip_date',
+                DB::raw('COUNT(*) as total_items'),
+                DB::raw('SUM(CASE WHEN trip_items.delivery_status = "' . TripItem::DELIVERY_STATUS_DELIVERED . '" THEN 1 ELSE 0 END) as delivered_items')
+            )
+            ->groupBy('trips.trip_date')
+            ->orderBy('trips.trip_date')
+            ->get();
+
+        $dailyTrend = [];
+        foreach ($dailyTrendRaw as $row) {
+            $dailyTrend[] = [
+                'date' => Carbon::parse($row->trip_date)->format('Y-m-d'),
+                'total_items' => (int) $row->total_items,
+                'delivered_items' => (int) $row->delivered_items,
+            ];
+        }
+
         return [
             'kpis' => [
                 'trips_count' => (int) ($tripSummary->trips_count ?? 0),
@@ -302,6 +323,7 @@ class DashboardController extends Controller
             ],
             'trips_by_status' => $tripsByStatus,
             'recent_trips' => $recentTrips,
+            'daily_trend' => $dailyTrend,
         ];
     }
 

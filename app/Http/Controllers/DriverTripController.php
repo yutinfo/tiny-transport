@@ -35,7 +35,7 @@ class DriverTripController extends Controller
     {
         $this->ensureDriverOwnsTrip($trip);
 
-        return $this->show($trip);
+        return $this->renderTrip($trip, 'driver.trips.show');
     }
 
     private function ensureDriverOwnsTrip(Trip $trip): void
@@ -47,6 +47,11 @@ class DriverTripController extends Controller
 
     public function show(Trip $trip)
     {
+        return $this->renderTrip($trip, 'admin.trip.driver');
+    }
+
+    private function renderTrip(Trip $trip, string $view)
+    {
         $trip->load([
             'tripItems.order',
             'tripItems.orderReceive',
@@ -57,7 +62,7 @@ class DriverTripController extends Controller
         $failed = $items->where('delivery_status', TripItem::DELIVERY_STATUS_FAILED)->count();
         $returned = $items->where('delivery_status', TripItem::DELIVERY_STATUS_RETURNED)->count();
 
-        return view('admin.trip.driver', [
+        return view($view, [
             'data' => $trip,
             'items' => $items,
             'summary' => [

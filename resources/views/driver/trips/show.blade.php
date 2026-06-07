@@ -1,5 +1,5 @@
 @extends('layouts.driver')
- 
+
 @section('content')
 <div class="driver-topbar">
     <a href="{{ route('driver.dashboard') }}" class="btn btn-sm btn-outline-secondary">
@@ -10,7 +10,7 @@
     </div>
     <div style="width: 50px;"></div> {{-- spacer to center title --}}
 </div>
- 
+
 <div class="driver-content">
     @if(session('success'))
         <div class="alert alert-success py-2">{{ session('success') }}</div>
@@ -22,11 +22,11 @@
             @endforeach
         </div>
     @endif
- 
+
     @if($readOnly)
         <div class="alert alert-warning py-2 small">รอบขนส่งนี้เสร็จสิ้นหรือยกเลิกแล้ว แสดงผลแบบอ่านอย่างเดียว</div>
     @endif
- 
+
     <div class="driver-trip-card mb-3">
         <div class="d-flex justify-content-between align-items-center mb-2">
             <h5 class="font-weight-bold mb-0">{{ $data->code }}</h5>
@@ -38,7 +38,7 @@
             <div><strong>พื้นที่:</strong> {{ $data->area_name ?: '-' }}</div>
         </div>
     </div>
- 
+
     <div class="driver-summary-grid mb-3">
         <div class="driver-summary-card">
             <div class="text-muted small">พัสดุทั้งหมด</div>
@@ -65,14 +65,70 @@
             <div class="h5 font-weight-bold mb-0 text-secondary">{{ number_format($summary['collected_amount'], 2) }}</div>
         </div>
     </div>
- 
-    <h6 class="font-weight-bold mb-2">รายการพัสดุในรอบ</h6>
-    @forelse($items as $item)
-        @include('driver.trips._parcel-card', ['item' => $item])
-    @empty
-        <div class="card">
-            <div class="card-body text-center text-muted py-4 small">ยังไม่มีพัสดุในรอบนี้</div>
-        </div>
-    @endforelse
+
+    @php
+        $pendingItems = $items->filter(function($item) {
+            return in_array($item->delivery_status, [
+                \App\Models\TripItem::DELIVERY_STATUS_WAITING,
+                \App\Models\TripItem::DELIVERY_STATUS_PICKED_UP,
+                \App\Models\TripItem::DELIVERY_STATUS_IN_TRANSIT
+            ]);
+        });
+
+        $completedItems = $items->filter(function($item) {
+            return in_array($item->delivery_status, [
+                \App\Models\TripItem::DELIVERY_STATUS_DELIVERED,
+                \App\Models\TripItem::DELIVERY_STATUS_FAILED,
+                \App\Models\TripItem::DELIVERY_STATUS_RETURNED
+            ]);
+        });
+    @endphp
+
+    <div class="mb-4">
+        @if($items->isEmpty())
+            <div class="card border-0 bg-light">
+                <div class="card-body text-center text-muted py-4 small">
+                    <i class="fas fa-box-open fa-2x mb-2 text-light"></i>
+                    <div>ยังไม่มีพัสดุในรอบนี้</div>
+                </div>
+            </div>
+        @else
+            {{-- Active / Pending Section --}}
+            <h6 class="font-weight-bold mb-3 text-primary">
+                <i class="fas fa-hourglass-half mr-1"></i>
+                รายการที่ต้องจัดส่ง ({{ $pendingItems->count() }})
+            </h6>
+
+            @forelse($pendingItems as $item)
+                @include('driver.trips._parcel-card', ['item' => $item, 'isActive' => true])
+            @empty
+                <div class="card border-0 bg-light mb-3">
+                    <div class="card-body text-center text-muted py-3 small">
+                        <i class="fas fa-check-double text-success fa-lg mb-1"></i>
+                        <div>จัดส่งเสร็จสิ้นครบถ้วนแล้ว!</div>
+                    </div>
+                </div>
+            @endforelse
+
+            {{-- Completed Section --}}
+            @if($completedItems->isNotEmpty())
+                <div class="completed-section-header d-flex justify-content-between align-items-center mt-4 mb-3" data-toggle="collapse" data-target="#completed-parcels-list" aria-expanded="false" aria-controls="completed-parcels-list">
+                    <div class="font-weight-bold text-muted">
+                        <i class="fas fa-check-circle text-success mr-1"></i>
+                        ดำเนินการแล้ว ({{ $completedItems->count() }})
+                    </div>
+                    <span class="toggle-icon text-muted">
+                        <i class="fas fa-chevron-down"></i>
+                    </span>
+                </div>
+
+                <div class="collapse" id="completed-parcels-list">
+                    @foreach($completedItems as $item)
+                        @include('driver.trips._parcel-card', ['item' => $item, 'isActive' => false])
+                    @endforeach
+                </div>
+            @endif
+        @endif
+    </div>
 </div>
 @endsection

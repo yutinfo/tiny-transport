@@ -9,27 +9,37 @@
 @endsection
 
 @section('content')
-    <div class="container-fluid">
-        <form action="{{route('admin.contacts.store')}}" method="post">
-            @include('admin.contact.form-component.header', ['title' => 'บันทึกข้อมูลผู้ส่ง/ผู้รับ', 'mode' => 'สร้าง'])
+<div class="container-fluid ta-page-shell">
+    <form action="{{ route('admin.contacts.store') }}" method="post" class="ta-page-shell">
+        @include('admin.contact.form-component.header', ['title' => 'บันทึกข้อมูลผู้ส่ง/ผู้รับ', 'mode' => 'สร้าง'])
 
-            <section class="content">
-                <div class="container-fluid">
-                    <div class="row">
-                        <div class="col-md-12">
-                            @include('layouts.alert-message')
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-12">
-                            @include('admin.contact.form-component.form')
-                        </div>
-                    </div>
+        <section class="content">
+            <div class="row">
+                <div class="col-md-12">
+                    @include('layouts.alert-message')
                 </div>
-            </section>
-            @csrf
-        </form>
-    </div>
+            </div>
+        </section>
+
+        @include('admin.contact.form-component.form')
+
+        <div class="ta-sticky-savebar">
+            <div class="ta-sticky-savebar__inner">
+                <div class="ta-sticky-savebar__text">
+                    <strong>พร้อมบันทึกข้อมูลผู้ติดต่อ</strong>
+                    <span>ใช้สำหรับเลือกผู้ฝากหรือผู้รับในขั้นตอนสร้างออเดอร์</span>
+                </div>
+                <div class="ta-page-actions">
+                    <a class="btn btn-default" href="{{ route('admin.contacts.index') }}">ยกเลิก</a>
+                    <button type="submit" class="btn bg-success">
+                        <i class="fas fa-save"></i> บันทึก
+                    </button>
+                </div>
+            </div>
+        </div>
+        @csrf
+    </form>
+</div>
 @endsection
 
 @push('page_scripts')

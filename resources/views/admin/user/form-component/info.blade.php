@@ -1,13 +1,13 @@
-<div class="card card-info">
+<div class="card ta-form-section">
     <div class="card-header">
-        <h3 class="card-title">ข้อมูลผู้ใช้</h3>
+        <div>
+            <h3 class="ta-section-title">ข้อมูลผู้ใช้</h3>
+            <p class="ta-section-subtitle">ข้อมูลโปรไฟล์พื้นฐานของผู้ใช้ในระบบ</p>
+        </div>
     </div>
-    <!-- /.card-header -->
     <div class="card-body">
-
-            <div class="row">
+            <div class="ta-form-grid">
                 <div class="col-sm-6">
-                    <!-- text input -->
                     <div class="form-group">
                         <label for="user_name">ชื่อ</label>
                         <input type="text" name="name" id="user_name" value="{{old('name',$data->name??'')}}" class="form-control" placeholder="ขื่อ ...">
@@ -20,9 +20,8 @@
                     </div>
                 </div>
             </div>
-            <div class="row">
+            <div class="ta-form-grid">
                 <div class="col-sm-6">
-                    <!-- text input -->
                     <div class="form-group">
                         <label for="user_email">อีเมล</label>
                         <input type="text" name="email" id="user_email" value="{{old('email',$data->email??'')}}" class="form-control" placeholder="อีเมล ...">

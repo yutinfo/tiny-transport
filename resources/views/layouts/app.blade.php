@@ -15,7 +15,7 @@
     @stack('page_css')
 </head>
 
-<body class="hold-transition sidebar-mini layout-fixed">
+<body class="hold-transition sidebar-mini layout-fixed ta-admin-shell">
 <div class="wrapper">
 
     <!-- Main Header -->
@@ -29,29 +29,29 @@
             </li>
         </ul>
 
-        <ul class="navbar-nav ml-auto">
+        <ul class="navbar-nav ml-auto align-items-center">
             <li class="nav-item dropdown user-menu">
                 <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                    <i class="fa-2x fas fa-user-circle" aria-hidden="true"></i>
-
+                    <span class="brand-mark mr-2" aria-hidden="true">
+                        <i class="fas fa-user"></i>
+                    </span>
                     <span class="d-none d-md-inline">{{ Auth::user()->name }}</span>
                 </a>
                 <ul class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
-                    <!-- User image -->
                     <li class="user-header bg-primary">
-                        <i class="fa-5x fas fa-user-circle" aria-hidden="true"></i>
+                        <span class="brand-mark mb-3" aria-hidden="true">
+                            <i class="fas fa-user"></i>
+                        </span>
                         <p>
-
                             {{ Auth::user()->name }}   {{ Auth::user()->last_name }}
                             <small>บทบาท {{ Auth::user()->role_name }}</small>
                         </p>
                     </li>
-                    <!-- Menu Footer-->
                     <li class="user-footer">
-
                         <a href="#" class="btn btn-default btn-flat float-right"
                            onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
-                            Sign out
+                            <i class="fas fa-sign-out-alt" aria-hidden="true"></i>
+                            ออกจากระบบ
                         </a>
                         <form id="logout-form" action="{{ route('login.logout') }}" method="POST" class="d-none">
                             @csrf
@@ -65,9 +65,9 @@
     <!-- Left side column. contains the logo and sidebar -->
 @include('layouts.sidebar')
 
-<!-- Content Wrapper. Contains page content -->
+    <!-- Content Wrapper. Contains page content -->
     <div class="content-wrapper">
-        <section class="content" id="main-content">
+        <section class="content pt-3" id="main-content">
             @yield('content')
         </section>
     </div>

@@ -5,104 +5,94 @@
 @endsection
 
 @section('content')
-    <div class="container-fluid">
-        <form action="{{route('admin.users.update',$data->id)}}" method="post">
-            @method('PUT')
-    <section class="content-header">
-            <div class="container-fluid">
-                <div class="card">
-                    <div class="card-header">
-                        <div class="row">
-                            <div class="col-sm-6">
-                        <div class="d-flex flex-row">
-                            <h5 class="font-weight-bold">
-                                บันทึกข้อมูลผู้ใช้
-                            </h5>
-                            <ol class="breadcrumb ">
-                                <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}"> <small> หน้าหลัก</small></a></li>
-                                <li class="breadcrumb-item "> <small> ผู้ใช้งาน</small></li>
-                                <li class="breadcrumb-item active"> <small> แก้ไข</small></li>
-                                <li class="breadcrumb-item active"> <small> {{$data->id}}</small></li>
-                            </ol>
-
-                        </div>
+<div class="container-fluid ta-page-shell">
+    <form action="{{ route('admin.users.update', $data->id) }}" method="post" class="ta-page-shell">
+        @method('PUT')
+        <section class="ta-page-header-card">
+            <div class="card-body">
+                <div class="ta-page-header-row">
+                    <div>
+                        <span class="ta-page-kicker"><i class="fas fa-users-cog" aria-hidden="true"></i> Users</span>
+                        <h1 class="ta-page-title">แก้ไขข้อมูลผู้ใช้</h1>
+                        <p class="ta-page-subtitle">ปรับข้อมูลบัญชี {{ $data->username }} และอัปเดตบทบาทของผู้ใช้งาน</p>
                     </div>
-                    <div class="col-sm-6 text-right">
-                        <div class="col-sm-12 text-right">
-                            <button type="submit" class="btn  bg-success" >
-                                <i class="fas fa-save"></i> บันทึก
-                            </button>
-                            <a class="btn  bg-danger" href="{{route('admin.users.index')}}">
-                                <i class="fas fa-trash-alt"></i> ยกเลิก
-                            </a>
-                        </div>
+                    <div class="ta-page-actions">
+                        <a class="btn btn-default" href="{{ route('admin.users.index') }}">
+                            <i class="fas fa-arrow-left"></i> กลับ
+                        </a>
                     </div>
                 </div>
             </div>
-                </div>
-            </div><!-- /.container-fluid -->
-    </section>
+        </section>
 
         <section class="content">
-            <div class="container-fluid">
-                <div class="row">
-                    <div class="col-md-12">
-                        @include('layouts.alert-message')
-                    </div>
+            <div class="row">
+                <div class="col-md-12">
+                    @include('layouts.alert-message')
                 </div>
-                <div class="row">
-                    <div class="col-md-6">
-                       @include('admin.user.form-component.info')
-                    </div>
-                    <div class="col-md-6">
-                        @include('admin.user.form-component.auth')
-                    </div>
-
-                </div>
-                <!-- /.row -->
-            </div><!-- /.container-fluid -->
+            </div>
         </section>
+
+        <div class="ta-form-layout">
+            <div class="ta-form-main">
+                @include('admin.user.form-component.info')
+            </div>
+            <div class="ta-form-sidebar">
+                @include('admin.user.form-component.auth')
+            </div>
+        </div>
+
+        <div class="ta-sticky-savebar">
+            <div class="ta-sticky-savebar__inner">
+                <div class="ta-sticky-savebar__text">
+                    <strong>พร้อมบันทึกการเปลี่ยนแปลง</strong>
+                    <span>ตรวจสอบสิทธิ์และสถานะก่อนอัปเดตบัญชีผู้ใช้</span>
+                </div>
+                <div class="ta-page-actions">
+                    <a class="btn btn-default" href="{{ route('admin.users.index') }}">ยกเลิก</a>
+                    <button type="submit" class="btn bg-success">
+                        <i class="fas fa-save"></i> บันทึก
+                    </button>
+                </div>
+            </div>
+        </div>
         @csrf
     </form>
-    </div>
+</div>
 @endsection
 
 @push('page_scripts')
 @if(count($errors)>=1)
 <script>
-
-    $(function(){
+    $(function() {
         $(".msg-alert-danger-show-text").html("");
         let error = JSON.parse(`{!!$errors!!}`);
 
         for (const [key, value] of Object.entries(error)) {
-            $(".msg-alert-danger-show-text").append(value +"<br />")
+            $(".msg-alert-danger-show-text").append(value + "<br />")
         }
 
-			$(".msg-alert-danger").show("slow");
-			$("html, body").animate({
-				scrollTop: 0
-			}, "fast");
+        $(".msg-alert-danger").show("slow");
+        $("html, body").animate({
+            scrollTop: 0
+        }, "fast");
     })
 </script>
 @endif
 
 @if(session()->has('success'))
 <script>
-
-    $(function(){
+    $(function() {
         $(".msg-alert-success-show-text").html("");
-            $(".msg-alert-success-show-text").append("เพิ่มข้อมูลสำเร็จ")
-			$(".msg-alert-success").show("slow");
-			$("html, body").animate({
-				scrollTop: 0
-			}, "fast");
-            setTimeout(() => {
-                window.location.href = "{{route('admin.users.index')}}";
-            }, 2000);
+        $(".msg-alert-success-show-text").append("เพิ่มข้อมูลสำเร็จ")
+        $(".msg-alert-success").show("slow");
+        $("html, body").animate({
+            scrollTop: 0
+        }, "fast");
+        setTimeout(() => {
+            window.location.href = "{{route('admin.users.index')}}";
+        }, 2000);
     })
 </script>
 @endif
-
-
 @endpush()

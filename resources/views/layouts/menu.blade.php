@@ -7,6 +7,7 @@ $role_name = Auth::user()->role_name;
 
 @endphp
 @if ($role_name == 'admin')
+<li class="nav-header">ภาพรวม</li>
 <li class="nav-item">
     <a href="{{ route('admin.dashboard') }}" class="nav-link {{ $route_name=='dashboard' ? 'active' : '' }}">
         <i class="nav-icon fas fa-tachometer-alt"></i>
@@ -15,6 +16,7 @@ $role_name = Auth::user()->role_name;
 </li>
 @endif
 @if ($role_name=='admin'||$role_name=='staff')
+<li class="nav-header">งานขนส่ง</li>
 <li class="nav-item">
     <a href="{{ route('admin.orders.index') }}" class="nav-link {{ $route_name=='orders' ? 'active' : '' }}">
         <i class="nav-icon fas fa-th-list"></i>
@@ -41,6 +43,7 @@ $role_name = Auth::user()->role_name;
 </li>
 @endif
 @if ($role_name=='admin')
+<li class="nav-header">ตั้งค่าระบบ</li>
 <li class="nav-item">
     <a href="{{ route('admin.users.index') }}" class="nav-link {{ $route_name=='users' ? 'active' : '' }}">
         <i class="nav-icon  fas fa-user-alt"></i>

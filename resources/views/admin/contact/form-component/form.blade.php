@@ -1,9 +1,12 @@
-<div class="card card-info">
+<div class="card ta-form-section">
     <div class="card-header">
-        <h3 class="card-title">รายละเอียดผู้ติดต่อ</h3>
+        <div>
+            <h3 class="ta-section-title">รายละเอียดผู้ติดต่อ</h3>
+            <p class="ta-section-subtitle">ข้อมูลนี้จะถูกใช้ซ้ำในงานสร้างออเดอร์และรายการจัดส่ง</p>
+        </div>
     </div>
     <div class="card-body">
-        <div class="row">
+        <div class="ta-form-grid">
             <div class="col-md-4">
                 <div class="form-group">
                     <label for="contact_type">ประเภท <span class="text-danger">*</span></label>
@@ -31,7 +34,7 @@
             </div>
         </div>
 
-        <div class="row">
+        <div class="ta-form-grid">
             <div class="col-md-12">
                 <div class="form-group">
                     <label for="contact_address">ที่อยู่</label>
@@ -41,7 +44,7 @@
             </div>
         </div>
 
-        <div class="row">
+        <div class="ta-form-grid">
             <div class="col-md-6">
                 <div class="form-group">
                     <label for="contact_province_id">จังหวัด</label>
@@ -65,7 +68,7 @@
             </div>
         </div>
 
-        <div class="row">
+        <div class="ta-form-grid">
             <div class="col-md-6">
                 <div class="form-group">
                     <label for="contact_district_id">ตำบล</label>

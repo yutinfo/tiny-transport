@@ -1,13 +1,13 @@
-<div class="card card-danger">
+<div class="card ta-form-section">
     <div class="card-header">
-        <h3 class="card-title">ข้อมูลเข้าสู่ระบบ</h3>
+        <div>
+            <h3 class="ta-section-title">ข้อมูลเข้าสู่ระบบ</h3>
+            <p class="ta-section-subtitle">กำหนดข้อมูลยืนยันตัวตนและสิทธิ์การใช้งาน</p>
+        </div>
     </div>
-    <!-- /.card-header -->
     <div class="card-body">
-
-            <div class="row">
+            <div class="ta-form-grid">
                 <div class="col-sm-6">
-                    <!-- text input -->
                     <div class="form-group">
                         <label for="username">ชื่อเข้าใช้ระบบ Username</label>
                         <input type="text" @isset($data->username) disabled @endif name="username" id="username" value="{{old('username',$data->username??'')}}" class="form-control" placeholder="ขื่อ ...">
@@ -20,9 +20,8 @@
                     </div>
                 </div>
             </div>
-            <div class="row">
+            <div class="ta-form-grid">
                 <div class="col-sm-6">
-                    <!-- text input -->
                     <div class="form-group">
                         <label for="role_name">บทบาท</label>
                         <select name="role_name" id="role_name" class="form-control">

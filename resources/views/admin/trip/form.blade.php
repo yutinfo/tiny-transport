@@ -1,4 +1,4 @@
-<div class="row">
+<div class="ta-form-grid">
     <div class="col-md-3">
         <div class="form-group">
             <label for="trip_date">วันที่รอบขนส่ง <span class="text-danger">*</span></label>

@@ -39,6 +39,28 @@
         </div>
     </div>
 
+    @if($data->status === \App\Models\Trip::STATUS_ASSIGNED)
+        <div class="mb-3">
+            <form action="{{ route('driver.trips.start', $data) }}" method="POST" onsubmit="return confirm('ยืนยันการเริ่มจัดส่งรอบขนส่งนี้?')">
+                @csrf
+                <button type="submit" class="btn btn-primary btn-block py-2 font-weight-bold shadow-sm">
+                    <i class="fas fa-play mr-1"></i> เริ่มนำส่ง (Start Delivery)
+                </button>
+            </form>
+        </div>
+    @endif
+
+    @if($data->status === \App\Models\Trip::STATUS_IN_TRANSIT && $summary['remaining_count'] === 0)
+        <div class="mb-3">
+            <form action="{{ route('driver.trips.submit', $data) }}" method="POST" onsubmit="return confirm('ยืนยันการส่งยอดและปิดรอบจัดส่ง?')">
+                @csrf
+                <button type="submit" class="btn btn-success btn-block py-2 font-weight-bold shadow-sm">
+                    <i class="fas fa-check-circle mr-1"></i> ส่งยอดและปิดรอบ (Submit Route)
+                </button>
+            </form>
+        </div>
+    @endif
+
     <div class="driver-summary-grid mb-3">
         <div class="driver-summary-card">
             <div class="text-muted small">พัสดุทั้งหมด</div>

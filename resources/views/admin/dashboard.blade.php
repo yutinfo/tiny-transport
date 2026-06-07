@@ -115,6 +115,7 @@
         \App\Models\Trip::STATUS_DRAFT => 'badge-secondary',
         \App\Models\Trip::STATUS_ASSIGNED => 'badge-info',
         \App\Models\Trip::STATUS_IN_TRANSIT => 'badge-primary',
+        \App\Models\Trip::STATUS_PENDING_VERIFICATION => 'badge-warning',
         \App\Models\Trip::STATUS_COMPLETED => 'badge-success',
         \App\Models\Trip::STATUS_CANCELLED => 'badge-danger',
     ];

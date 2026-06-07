@@ -198,9 +198,15 @@
                             </form>
                         @endif
                         @if($data->status === \App\Models\Trip::STATUS_IN_TRANSIT)
-                            <form action="{{ route('admin.trips.complete', $data) }}" method="POST" class="d-inline" onsubmit="return confirm('ยืนยันการปิดรอบขนส่ง?')">
+                            <form action="{{ route('admin.trips.complete', $data) }}" method="POST" class="d-inline" onsubmit="return confirm('ยืนยันการบังคับปิดรอบขนส่ง (พนักงานขับรถยังไม่ได้กดส่งยอด)?')">
                                 @csrf
-                                <button type="submit" class="btn bg-success btn-sm"><i class="fas fa-check"></i> ปิดรอบขนส่ง</button>
+                                <button type="submit" class="btn bg-warning btn-sm text-white"><i class="fas fa-exclamation-triangle"></i> บังคับปิดรอบขนส่ง</button>
+                            </form>
+                        @endif
+                        @if($data->status === \App\Models\Trip::STATUS_PENDING_VERIFICATION)
+                            <form action="{{ route('admin.trips.complete', $data) }}" method="POST" class="d-inline" onsubmit="return confirm('ยืนยันการปิดรอบขนส่งและยืนยันยอดเงิน?')">
+                                @csrf
+                                <button type="submit" class="btn bg-success btn-sm"><i class="fas fa-check-double"></i> ยืนยันและปิดรอบขนส่ง</button>
                             </form>
                         @endif
                     </div>

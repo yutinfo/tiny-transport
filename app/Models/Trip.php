@@ -11,6 +11,7 @@ class Trip extends Model
     public const STATUS_DRAFT = 'draft';
     public const STATUS_ASSIGNED = 'assigned';
     public const STATUS_IN_TRANSIT = 'in_transit';
+    public const STATUS_PENDING_VERIFICATION = 'pending_verification';
     public const STATUS_COMPLETED = 'completed';
     public const STATUS_CANCELLED = 'cancelled';
 
@@ -72,6 +73,7 @@ class Trip extends Model
             self::STATUS_DRAFT,
             self::STATUS_ASSIGNED,
             self::STATUS_IN_TRANSIT,
+            self::STATUS_PENDING_VERIFICATION,
             self::STATUS_COMPLETED,
             self::STATUS_CANCELLED,
         ];
@@ -83,6 +85,7 @@ class Trip extends Model
             self::STATUS_DRAFT => 'แบบร่าง',
             self::STATUS_ASSIGNED => 'มอบหมายแล้ว',
             self::STATUS_IN_TRANSIT => 'กำลังจัดส่ง',
+            self::STATUS_PENDING_VERIFICATION => 'รอตรวจสอบยอด',
             self::STATUS_COMPLETED => 'เสร็จสิ้น',
             self::STATUS_CANCELLED => 'ยกเลิก',
         ];
@@ -104,6 +107,7 @@ class Trip extends Model
             self::STATUS_DRAFT => 'badge-secondary',
             self::STATUS_ASSIGNED => 'badge-info',
             self::STATUS_IN_TRANSIT => 'badge-primary',
+            self::STATUS_PENDING_VERIFICATION => 'badge-warning',
             self::STATUS_COMPLETED => 'badge-success',
             self::STATUS_CANCELLED => 'badge-danger',
         ][$this->status] ?? 'badge-secondary';

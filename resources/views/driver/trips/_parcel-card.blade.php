@@ -52,7 +52,13 @@
 
     <div class="mt-2">
         @if($readOnly)
-            <div class="text-center text-muted small py-1 bg-light rounded">อ่านอย่างเดียว</div>
+            @if($item->trip->status === \App\Models\Trip::STATUS_ASSIGNED)
+                <div class="text-center text-muted small py-1 bg-light rounded"><i class="fas fa-lock mr-1"></i> รอบริเริ่มจัดส่ง</div>
+            @elseif($item->trip->status === \App\Models\Trip::STATUS_PENDING_VERIFICATION)
+                <div class="text-center text-warning small py-1 bg-light rounded"><i class="fas fa-hourglass-half mr-1"></i> ส่งยอดแล้ว รอตรวจสอบ</div>
+            @else
+                <div class="text-center text-muted small py-1 bg-light rounded">อ่านอย่างเดียว</div>
+            @endif
         @else
             @if($isActive ?? true)
                 <div class="d-flex gap-2">

@@ -213,7 +213,7 @@ class TripService
     {
         return DB::transaction(function () use ($trip, $updatedBy) {
             $trip = $this->freshTrip($trip);
-            $this->ensureTripStatus($trip, [Trip::STATUS_IN_TRANSIT], 'ปิดรอบจัดส่งได้เฉพาะรอบที่กำลังจัดส่ง');
+            $this->ensureTripStatus($trip, [Trip::STATUS_IN_TRANSIT, Trip::STATUS_PENDING_VERIFICATION], 'ปิดรอบจัดส่งได้เฉพาะรอบที่กำลังจัดส่งหรือรอตรวจสอบยอด');
 
             $items = $trip->tripItems()->get();
 
@@ -231,6 +231,35 @@ class TripService
             $trip->fill([
                 'status' => Trip::STATUS_COMPLETED,
                 'completed_at' => now(),
+                'updated_by' => $updatedBy,
+            ]);
+            $trip->save();
+
+            return $trip->refresh();
+        });
+    }
+
+    public function submitTrip(Trip $trip, ?string $updatedBy = null): Trip
+    {
+        return DB::transaction(function () use ($trip, $updatedBy) {
+            $trip = $this->freshTrip($trip);
+            $this->ensureTripStatus($trip, [Trip::STATUS_IN_TRANSIT], 'ส่งยอดได้เฉพาะรอบที่กำลังจัดส่ง');
+
+            $items = $trip->tripItems()->get();
+
+            foreach ($items as $item) {
+                if (! in_array($item->delivery_status, $this->finalDeliveryStatuses(), true)) {
+                    throw new InvalidArgumentException('ยังมีพัสดุที่ยังไม่จบสถานะจัดส่ง');
+                }
+
+                if ($item->delivery_status === TripItem::DELIVERY_STATUS_FAILED && ! $this->hasFailureDetail($item->failed_reason, $item->note)) {
+                    throw new InvalidArgumentException('พัสดุที่จัดส่งไม่สำเร็จต้องระบุเหตุผล');
+                }
+            }
+
+            $trip = $this->recalculateTotals($trip);
+            $trip->fill([
+                'status' => Trip::STATUS_PENDING_VERIFICATION,
                 'updated_by' => $updatedBy,
             ]);
             $trip->save();

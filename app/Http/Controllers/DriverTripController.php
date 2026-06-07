@@ -218,9 +218,35 @@ class DriverTripController extends Controller
         ];
     }
 
+    public function startTrip(Trip $trip)
+    {
+        $this->ensureDriverOwnsTrip($trip);
+
+        try {
+            $this->tripService->startTrip($trip, $this->userName());
+        } catch (InvalidArgumentException $exception) {
+            return redirect()->back()->withErrors(['trip' => $exception->getMessage()]);
+        }
+
+        return redirect()->route('driver.trips.show', $trip)->with('success', 'เริ่มจัดส่งรอบขนส่งนี้เรียบร้อยแล้ว');
+    }
+
+    public function submitTrip(Trip $trip)
+    {
+        $this->ensureDriverOwnsTrip($trip);
+
+        try {
+            $this->tripService->submitTrip($trip, $this->userName());
+        } catch (InvalidArgumentException $exception) {
+            return redirect()->back()->withErrors(['trip' => $exception->getMessage()]);
+        }
+
+        return redirect()->route('driver.trips.show', $trip)->with('success', 'ส่งยอดและปิดรอบจัดส่งเรียบร้อยแล้ว รอการตรวจสอบจากเจ้าหน้าที่');
+    }
+
     private function isReadOnly(Trip $trip): bool
     {
-        return in_array($trip->status, [Trip::STATUS_COMPLETED, Trip::STATUS_CANCELLED], true);
+        return $trip->status !== Trip::STATUS_IN_TRANSIT;
     }
 
     private function userName(): ?string

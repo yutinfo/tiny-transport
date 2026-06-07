@@ -106,4 +106,45 @@ class DriverParcelActionFeatureTest extends TestCase
  
         return [$driver, $trip, $item];
     }
+
+    public function test_driver_can_start_assigned_trip()
+    {
+        [$driver, $trip, $item] = $this->createDriverTripItem();
+        $trip->update(['status' => Trip::STATUS_ASSIGNED]);
+
+        $this->actingAs($driver)
+            ->post('/driver/trips/' . $trip->id . '/start')
+            ->assertRedirect('/driver/trips/' . $trip->id);
+
+        $this->assertSame(Trip::STATUS_IN_TRANSIT, $trip->fresh()->status);
+    }
+
+    public function test_driver_can_submit_transit_trip_when_items_are_final()
+    {
+        [$driver, $trip, $item] = $this->createDriverTripItem();
+        $item->update([
+            'delivery_status' => TripItem::DELIVERY_STATUS_DELIVERED,
+            'payment_status' => TripItem::PAYMENT_STATUS_PAID,
+            'collected_amount' => 125.75,
+        ]);
+
+        $this->actingAs($driver)
+            ->post('/driver/trips/' . $trip->id . '/submit')
+            ->assertRedirect('/driver/trips/' . $trip->id);
+
+        $this->assertSame(Trip::STATUS_PENDING_VERIFICATION, $trip->fresh()->status);
+    }
+
+    public function test_driver_cannot_submit_transit_trip_when_items_are_not_final()
+    {
+        [$driver, $trip, $item] = $this->createDriverTripItem();
+
+        $this->actingAs($driver)
+            ->from('/driver/trips/' . $trip->id)
+            ->post('/driver/trips/' . $trip->id . '/submit')
+            ->assertRedirect('/driver/trips/' . $trip->id)
+            ->assertSessionHasErrors('trip');
+
+        $this->assertSame(Trip::STATUS_IN_TRANSIT, $trip->fresh()->status);
+    }
 }

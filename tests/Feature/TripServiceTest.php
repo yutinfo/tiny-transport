@@ -230,6 +230,61 @@ class TripServiceTest extends TestCase
         $this->assertSame('125.75', $updatedItem->collected_amount);
     }
 
+    public function test_submit_trip_succeeds_when_all_items_are_final()
+    {
+        $service = new TripService();
+        $trip = $this->createTrip();
+        [, $receiver] = $this->createOrderAndReceiver();
+
+        $tripItem = $service->assignParcel($trip, $receiver);
+        $service->assignTrip($trip);
+        $service->startTrip($trip);
+        $service->updateDeliveryStatus($tripItem, TripItem::DELIVERY_STATUS_DELIVERED, 'ส่งสำเร็จ');
+        $service->updatePaymentCollection($tripItem, TripItem::PAYMENT_STATUS_PAID, 125.75);
+
+        $submittedTrip = $service->submitTrip($trip);
+
+        $this->assertSame(Trip::STATUS_PENDING_VERIFICATION, $submittedTrip->status);
+        $this->assertSame(1, $submittedTrip->total_parcels);
+        $this->assertSame('125.75', $submittedTrip->total_cod_amount);
+        $this->assertSame('125.75', $submittedTrip->collected_amount);
+    }
+
+    public function test_submit_trip_fails_when_item_is_not_final()
+    {
+        $service = new TripService();
+        $trip = $this->createTrip();
+        [, $receiver] = $this->createOrderAndReceiver();
+
+        $service->assignParcel($trip, $receiver);
+        $service->assignTrip($trip);
+        $service->startTrip($trip);
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('ยังมีพัสดุที่ยังไม่จบสถานะจัดส่ง');
+
+        $service->submitTrip($trip);
+    }
+
+    public function test_complete_trip_succeeds_from_pending_verification()
+    {
+        $service = new TripService();
+        $trip = $this->createTrip();
+        [, $receiver] = $this->createOrderAndReceiver();
+
+        $tripItem = $service->assignParcel($trip, $receiver);
+        $service->assignTrip($trip);
+        $service->startTrip($trip);
+        $service->updateDeliveryStatus($tripItem, TripItem::DELIVERY_STATUS_DELIVERED, 'ส่งสำเร็จ');
+        $service->updatePaymentCollection($tripItem, TripItem::PAYMENT_STATUS_PAID, 125.75);
+        $service->submitTrip($trip);
+
+        $completedTrip = $service->completeTrip($trip);
+
+        $this->assertSame(Trip::STATUS_COMPLETED, $completedTrip->status);
+        $this->assertNotNull($completedTrip->completed_at);
+    }
+
     private function createTrip(string $code = 'RUN-20260606-0001'): Trip
     {
         return Trip::create([

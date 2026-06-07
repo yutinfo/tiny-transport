@@ -132,6 +132,8 @@ npm run prod
 | POST | `/admin/trip-items/{tripItem}/payment-status` | อัปเดตสถานะชำระเงิน |
 | GET | `/driver` | หน้ารายการรอบขนส่งของคนขับ |
 | GET | `/driver/trips/{trip}` | หน้ารายละเอียดรอบขนส่ง mobile สำหรับคนขับ |
+| POST | `/driver/trips/{trip}/start` | คนขับเริ่มรอบขนส่งที่ได้รับมอบหมาย |
+| POST | `/driver/trips/{trip}/submit` | คนขับส่งยอดและเปลี่ยนรอบเป็นรอตรวจสอบ |
 | POST | `/driver/trip-items/{tripItem}/delivery-status` | คนขับอัปเดตสถานะจัดส่งพัสดุของตนเอง |
 | POST | `/driver/trip-items/{tripItem}/payment-status` | คนขับบันทึกยอดเก็บเงิน COD ของตนเอง |
 | GET | `/admin/parcels/search` | ค้นหาพัสดุ |
@@ -174,7 +176,7 @@ API ต่อไปนี้อยู่หลัง `auth:sanctum`:
 รอบจัดส่งรองรับสถานะ:
 
 ```text
-draft -> assigned -> in_transit -> completed
+draft -> assigned -> in_transit -> pending_verification -> completed
 cancelled
 ```
 

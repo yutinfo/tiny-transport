@@ -207,6 +207,32 @@ class TripOperationsFeatureTest extends TestCase
             ->assertSee('ไม่พบข้อมูลรายงานพัสดุตามตัวกรองที่เลือก');
     }
 
+    public function test_trip_detail_uses_modernized_admin_page_structure()
+    {
+        $user = $this->createUser();
+        [$trip, $tripItem, $receiver] = $this->createTripWithItem();
+
+        $this->actingAs($user)
+            ->get('/admin/trips/' . $trip->id)
+            ->assertOk()
+            ->assertSee('class="container-fluid ta-page-shell"', false)
+            ->assertSee('class="ta-page-header-card"', false)
+            ->assertSee('class="ta-kpi-grid"', false)
+            ->assertSee('class="card ta-table-card"', false)
+            ->assertSee('class="ta-form-layout ta-trip-summary-layout"', false)
+            ->assertSee('class="card ta-table-card ta-trip-full-width-section"', false)
+            ->assertSee('class="ta-trip-cost-form"', false)
+            ->assertSee('class="ta-trip-item-actions"', false)
+            ->assertSee('Trips')
+            ->assertSee('รอบขนส่ง ' . $trip->code)
+            ->assertSee('ภาพรวมรอบขนส่ง')
+            ->assertSee('ต้นทุนและกำไรโดยประมาณ')
+            ->assertSee('ข้อมูลรอบและการดำเนินการ')
+            ->assertSee('รายการพัสดุในรอบ')
+            ->assertSee($tripItem->parcel_code)
+            ->assertSee($receiver->receive_name);
+    }
+
     public function test_trip_csv_exports_stream_thai_excel_friendly_output()
     {
         $user = $this->createUser();

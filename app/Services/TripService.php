@@ -313,8 +313,16 @@ class TripService
             ]);
             $tripItem->save();
 
+            // Re-queue rule: a FAILED delivery is a retryable miss — return the parcel
+            // to the assignable pool (order_receive -> waiting) so it can be put on a
+            // future trip. The trip_item keeps 'failed' as this trip's record/stats.
+            // RETURNED (and others) leave the parcel at its real status.
+            $receiverDeliveryStatus = $status === TripItem::DELIVERY_STATUS_FAILED
+                ? TripItem::DELIVERY_STATUS_WAITING
+                : $status;
+
             $tripItem->orderReceive()->update([
-                'delivery_status' => $status,
+                'delivery_status' => $receiverDeliveryStatus,
                 'updated_by' => $updatedBy,
             ]);
 
@@ -421,11 +429,13 @@ class TripService
             throw new InvalidArgumentException('พัสดุนี้อยู่ในรอบจัดส่งนี้แล้ว');
         }
 
+        // Only a FAILED item frees the parcel for a future trip. RETURNED is terminal
+        // (sent back to the warehouse) and must NOT be re-assignable, so it stays out
+        // of this exclusion list and therefore blocks re-assignment.
         $activeAssignmentExists = TripItem::query()
             ->where('order_receive_id', $receiver->id)
             ->whereNotIn('delivery_status', [
                 TripItem::DELIVERY_STATUS_FAILED,
-                TripItem::DELIVERY_STATUS_RETURNED,
             ])
             ->whereHas('trip', function ($query) {
                 $query->whereNotIn('status', [
@@ -435,7 +445,7 @@ class TripService
             ->exists();
 
         if ($activeAssignmentExists) {
-            throw new InvalidArgumentException('พัสดุนี้ถูกจัดเข้ารอบจัดส่งที่ยังใช้งานอยู่แล้ว');
+            throw new InvalidArgumentException('พัสดุนี้ถูกจัดเข้ารอบจัดส่งที่ยังใช้งานอยู่แล้ว หรือถูกตีกลับ (ส่งคืนคลัง) แล้ว');
         }
     }
 

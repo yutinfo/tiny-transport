@@ -930,6 +930,8 @@ textarea.form-control {
 .ta-form-grid .col-md-4,
 .ta-form-grid .col-md-5,
 .ta-form-grid .col-md-6,
+.ta-form-grid .col-md-8,
+.ta-form-grid .col-md-9,
 .ta-form-grid .col-md-12,
 .ta-form-grid .col-sm-6,
 .ta-form-grid .col-sm-12,
@@ -969,8 +971,13 @@ textarea.form-control {
     grid-column: span 6;
 }
 
-.ta-form-grid .col-lg-8 {
+.ta-form-grid .col-lg-8,
+.ta-form-grid .col-md-8 {
     grid-column: span 8;
+}
+
+.ta-form-grid .col-md-9 {
+    grid-column: span 9;
 }
 
 .ta-form-grid .col-md-12,

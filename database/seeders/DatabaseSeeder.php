@@ -17,6 +17,7 @@ class DatabaseSeeder extends Seeder
        $this->call([
            LocationSeeder::class,
            UserSeeder::class,
+           DriverSeeder::class,
            SampleDataSeeder::class,
        ]);
 

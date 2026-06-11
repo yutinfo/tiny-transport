@@ -8,6 +8,7 @@
 - **Contacts** - จัดการข้อมูลผู้ติดต่อ พร้อม API สำหรับค้นหา/แนะนำข้อมูลผู้ติดต่อ
 - **Dashboard** - สรุปยอดพัสดุ รายรับ COD สถานะจัดส่ง สถานะรอบขนส่ง และรายการล่าสุด
 - **Trip Management** - สร้างรอบจัดส่ง มอบหมายพัสดุเข้ารอบ เริ่มรอบ ปิดรอบ ยกเลิกรอบ และแก้ไขข้อมูลรอบ
+- **Driver Management** - ฐานข้อมูลคนขับรถ (master data) ที่ `/admin/drivers`: CRUD ค้นหา/กรอง ผูกบัญชี login (สร้างใหม่/ผูกบัญชีเดิม), รีเซ็ตรหัสผ่าน, ปิด/เปิดใช้งาน (ซิงก์สถานะบัญชี login), สถิติการจัดส่ง และตอนสร้างรอบเลือกคนขับจุดเดียวด้วย Select2 พร้อมสถานะ ว่าง/ไม่ว่าง ของวันนั้น (staff ดูได้, admin จัดการได้)
 - **Driver View** - มุมมองพนักงานขับรถสำหรับอัปเดตสถานะจัดส่งและสถานะชำระเงิน
 - **COD & Cost Tracking** - บันทึกยอดเก็บเงินปลายทาง ยอดที่เก็บได้ ต้นทุนรอบจัดส่ง และสรุปกำไร/ขาดทุน
 - **Parcel Labels & QR** - พิมพ์ใบปะหน้าพัสดุจากออเดอร์หรือรอบจัดส่ง พร้อม QR สำหรับติดตามพัสดุ
@@ -114,6 +115,12 @@ npm run prod
 | DELETE | `/admin/order-receive/{id}` | ลบรายการรับพัสดุ |
 | GET/POST | `/admin/contacts` | จัดการข้อมูลผู้ติดต่อ |
 | GET/POST | `/admin/users` | จัดการผู้ใช้งาน เฉพาะ admin |
+| GET | `/admin/drivers` | รายการคนขับรถ (admin, staff) |
+| GET/POST | `/admin/drivers/create`, `/admin/drivers` | สร้างคนขับ + ผูกบัญชี login (admin) |
+| GET/PUT/DELETE | `/admin/drivers/{driver}` | ดู/แก้ไข/ลบคนขับ (ดู: admin+staff, แก้/ลบ: admin) |
+| POST | `/admin/drivers/{driver}/toggle-status` | เปิด/ปิดใช้งานคนขับ + ซิงก์บัญชี login (admin) |
+| POST | `/admin/drivers/{driver}/reset-password` | รีเซ็ตรหัสผ่านบัญชีคนขับ (admin) |
+| GET | `/admin/api/drivers/availability` | สถานะ ว่าง/ไม่ว่าง ของคนขับตามวันที่ (admin, staff) |
 | GET/POST | `/admin/trips` | รายการและสร้างรอบจัดส่ง |
 | GET | `/admin/trips/export/csv` | Export รายการรอบจัดส่ง |
 | GET/POST | `/admin/trips/{trip}` | ดูและบันทึกข้อมูลรอบจัดส่ง |
@@ -194,10 +201,12 @@ waiting, paid, unpaid, waived
 
 ## Database Notes
 
-- Seeder หลักรัน `LocationSeeder` และ `UserSeeder`
+- Seeder หลักรัน `LocationSeeder`, `UserSeeder`, `DriverSeeder` และ `SampleDataSeeder` (`DriverSeeder` สร้างคนขับตัวอย่าง 3 คน — ผูกบัญชี 2 / ไม่มีบัญชี 1)
 - ตารางรอบจัดส่งประกอบด้วย `trips`, `trip_items`, `trip_costs`, `parcel_status_logs`, และ `parcel_notifications`
+- ตาราง `drivers` เป็น master data ของคนขับรถ (มี `code` รูปแบบ `DRV-0001`, `mobile` unique, `user_id` unique → `users`); `trips` เพิ่มคอลัมน์ `driver_id` (FK → `drivers`) โดยยังคงคอลัมน์ snapshot เดิม (`driver_name`, `driver_mobile`, `car_id`, `area_name`, `driver_user_id`) ไว้ครบ
+- Backfill ข้อมูลคนขับเดิม: `php artisan drivers:backfill` (idempotent, มี `--dry-run`) สร้างแถว `drivers` ให้ทุก user role `driver` และเติม `trips.driver_id` จาก `driver_user_id`
 - `order_receives` รองรับทั้ง `parcel_price` และชื่อเดิม `parcel_pice`; model จะ sync ค่าระหว่างสอง field เพื่อรองรับโค้ดเก่าและโค้ดใหม่
-- Migration ล่าสุดมี index เพิ่มเติมสำหรับ `order_receives` เพื่อช่วยงานค้นหาและ dashboard
+- Migration ล่าสุดมี index เพิ่มเติมสำหรับ `order_receives` และ `trips` (`driver_id, trip_date`) เพื่อช่วยงานค้นหาและ dashboard
 
 ## Validation
 

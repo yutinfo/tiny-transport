@@ -226,7 +226,13 @@
                         </div>
                         <div class="ta-info-list__item">
                             <dt>พนักงานขับรถ</dt>
-                            <dd>{{ $data->driver_name ?: '-' }}</dd>
+                            <dd>
+                                @if($data->driver_id)
+                                    <a href="{{ route('admin.drivers.show', $data->driver_id) }}">{{ $data->driver_name ?: '-' }}</a>
+                                @else
+                                    {{ $data->driver_name ?: '-' }}
+                                @endif
+                            </dd>
                         </div>
                         <div class="ta-info-list__item">
                             <dt>เบอร์โทร</dt>

@@ -20,6 +20,7 @@ class Trip extends Model
     protected $casts = [
         'trip_date' => 'date:Y-m-d',
         'driver_user_id' => 'int',
+        'driver_id' => 'int',
         'total_parcels' => 'int',
         'total_cod_amount' => 'decimal:2',
         'collected_amount' => 'decimal:2',
@@ -33,6 +34,7 @@ class Trip extends Model
         'code',
         'trip_date',
         'driver_user_id',
+        'driver_id',
         'driver_name',
         'driver_mobile',
         'car_id',
@@ -50,6 +52,11 @@ class Trip extends Model
     public function driver()
     {
         return $this->belongsTo(User::class, 'driver_user_id');
+    }
+
+    public function driverProfile()
+    {
+        return $this->belongsTo(Driver::class, 'driver_id');
     }
 
     public function tripItems()

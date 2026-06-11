@@ -81,4 +81,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(Trip::class, 'driver_user_id');
     }
+
+    public function driverProfile()
+    {
+        return $this->hasOne(Driver::class, 'user_id');
+    }
 }

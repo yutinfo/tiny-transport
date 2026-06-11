@@ -9,6 +9,7 @@ use App\Models\TripCost;
 use App\Models\TripItem;
 use App\Models\User;
 use App\Services\TripService;
+use App\Support\DataTable;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
@@ -42,10 +43,61 @@ class TripController extends Controller
         }
 
         return view('admin.trip.list', [
-            'data' => $query->paginate(20)->appends($request->query()),
             'selected' => $request->only(['date_from', 'date_to', 'status', 'driver_name', 'car_id', 'area_name']),
             'statusLabels' => Trip::statusLabels(),
         ]);
+    }
+
+    /**
+     * Server-side DataTables endpoint for the trips list (ตารางรอบรถ).
+     */
+    public function tripsData(Request $request)
+    {
+        $base = Trip::query()
+            ->with('driver')
+            ->withCount('tripItems')
+            ->orderByDesc('id');
+
+        if ($request->filled('trip_date')) {
+            $base->whereDate('trip_date', $request->input('trip_date'));
+        }
+
+        if ($request->filled('status')) {
+            $base->where('status', $request->input('status'));
+        }
+
+        if ($request->filled('driver_id')) {
+            $base->where('driver_id', $request->input('driver_id'));
+        }
+
+        $columns = [
+            ['key' => 'row', 'orderable' => false, 'searchable' => false],
+            ['key' => 'trip_date', 'db' => 'trips.trip_date', 'orderable' => true, 'searchable' => false],
+            ['key' => 'code', 'db' => 'trips.code', 'orderable' => true, 'searchable' => true],
+            ['key' => 'driver_name', 'db' => 'trips.driver_name', 'orderable' => false, 'searchable' => true],
+            ['key' => 'status', 'db' => 'trips.status', 'orderable' => true, 'searchable' => false],
+            ['key' => 'items_count', 'orderable' => false, 'searchable' => false],
+            ['key' => 'cod_amount', 'orderable' => false, 'searchable' => false],
+            ['key' => 'actions', 'orderable' => false, 'searchable' => false],
+        ];
+
+        $start = max(0, (int) $request->input('start', 0));
+        $i = 0;
+
+        $payload = DataTable::respond($request, $base, $columns, function (Trip $trip) use ($start, &$i) {
+            return [
+                'row' => ($start + (++$i)) . '.',
+                'trip_date' => $trip->trip_date ? thaiDateFullmonth($trip->trip_date->format('Y-m-d')) : '-',
+                'code' => e($trip->code),
+                'driver_name' => e($trip->driver_name ?: '-'),
+                'status' => '<span class="badge ' . $trip->status_badge_class . '">' . e($trip->status_label) . '</span>',
+                'items_count' => number_format($trip->trip_items_count),
+                'cod_amount' => number_format((float) $trip->collected_amount, 2),
+                'actions' => view('admin.trip._trip-row-actions', ['trip' => $trip])->render(),
+            ];
+        });
+
+        return response()->json($payload);
     }
 
     public function create()
@@ -72,30 +124,84 @@ class TripController extends Controller
 
     public function show(Trip $trip)
     {
-        $trip->load([
-            'tripItems.order',
-            'tripItems.orderReceive.statusLogs',
-            'tripItems.orderReceive.order',
-            'costs',
-        ]);
+        // The items table is now loaded via the server-side DataTables endpoint
+        // (admin.trips.items.data); here we only need the status counts for the
+        // overview cards plus the costs relation for the cost table.
+        $trip->load('costs');
 
-        $items = $trip->tripItems;
+        $items = $trip->tripItems()->get(['delivery_status']);
 
         return view('admin.trip.show', [
             'data' => $trip,
-            'items' => $items,
             'summary' => [
                 'delivered_count' => $items->where('delivery_status', TripItem::DELIVERY_STATUS_DELIVERED)->count(),
                 'failed_count' => $items->where('delivery_status', TripItem::DELIVERY_STATUS_FAILED)->count(),
                 'returned_count' => $items->where('delivery_status', TripItem::DELIVERY_STATUS_RETURNED)->count(),
                 'remaining_cod' => max(0, (float) $trip->total_cod_amount - (float) $trip->collected_amount),
             ],
-            'deliveryStatusLabels' => TripItem::deliveryStatusLabels(),
-            'paymentStatusLabels' => TripItem::paymentStatusLabels(),
             'costTypeLabels' => TripCost::typeLabels(),
             'financialSummary' => $this->tripService->financialSummary($trip),
             'readOnly' => $this->isReadOnly($trip),
         ]);
+    }
+
+    /**
+     * Server-side DataTables endpoint for the parcels of one trip. Action-cell
+     * forms are pre-rendered server-side via a partial (incl. @csrf).
+     */
+    public function itemsData(Trip $trip, Request $request)
+    {
+        $readOnly = $this->isReadOnly($trip);
+
+        $base = TripItem::query()
+            ->where('trip_items.trip_id', $trip->id)
+            ->with(['order', 'orderReceive.statusLogs'])
+            ->leftJoin('order_receives', 'order_receives.id', '=', 'trip_items.order_receive_id')
+            ->select('trip_items.*');
+
+        $columns = [
+            ['key' => 'parcel_code', 'db' => 'trip_items.parcel_code', 'orderable' => true, 'searchable' => true],
+            ['key' => 'order_code', 'orderable' => false, 'searchable' => false],
+            ['key' => 'receive_name', 'db' => 'order_receives.receive_name', 'orderable' => false, 'searchable' => true],
+            ['key' => 'address', 'orderable' => false, 'searchable' => false],
+            ['key' => 'cod_amount', 'db' => 'trip_items.cod_amount', 'orderable' => true, 'searchable' => false],
+            ['key' => 'collected_amount', 'orderable' => false, 'searchable' => false],
+            ['key' => 'delivery_status', 'db' => 'trip_items.delivery_status', 'orderable' => true, 'searchable' => false],
+            ['key' => 'payment_status', 'orderable' => false, 'searchable' => false],
+            ['key' => 'actions', 'orderable' => false, 'searchable' => false],
+        ];
+
+        $payload = DataTable::respond($request, $base, $columns, function (TripItem $item) use ($trip, $readOnly) {
+            $receiver = $item->orderReceive;
+            $address = trim(($receiver->receive_address ?? '') . ' ' . implode(' ', array_filter([
+                $receiver->district_name ?? null,
+                $receiver->amphures_name ?? null,
+                $receiver->province_name ?? null,
+                $receiver->zip_code ?? null,
+            ])));
+
+            return [
+                'parcel_code' => e($item->parcel_code),
+                'order_code' => e($item->order->code ?? '-'),
+                'receive_name' => e($receiver->receive_name ?? '-')
+                    . '<small class="d-block text-muted">' . e($receiver->receive_mobile ?? '') . '</small>',
+                'address' => e($address),
+                'cod_amount' => number_format((float) $item->cod_amount, 2),
+                'collected_amount' => number_format((float) $item->collected_amount, 2),
+                'delivery_status' => '<span class="badge ' . $item->delivery_status_badge_class . '">' . e($item->delivery_status_label) . '</span>',
+                'payment_status' => '<span class="badge ' . $item->payment_status_badge_class . '">' . e($item->payment_status_label) . '</span>',
+                'actions' => view('admin.trip._item-actions', [
+                    'item' => $item,
+                    'trip' => $trip,
+                    'receiver' => $receiver,
+                    'readOnly' => $readOnly,
+                    'deliveryStatusLabels' => TripItem::deliveryStatusLabels(),
+                    'paymentStatusLabels' => TripItem::paymentStatusLabels(),
+                ])->render(),
+            ];
+        });
+
+        return response()->json($payload);
     }
 
     public function edit(Trip $trip)
@@ -150,6 +256,64 @@ class TripController extends Controller
             return redirect()->route('admin.trips.show', $trip)->withErrors(['trip' => 'รอบขนส่งนี้เพิ่มพัสดุไม่ได้']);
         }
 
+        return view('admin.trip.assign', [
+            'data' => $trip,
+            'selected' => $request->only(['date_from', 'date_to', 'province_name', 'amphures_name', 'payment_type', 'parcel_pickup_type', 'keyword']),
+        ]);
+    }
+
+    /**
+     * Server-side DataTables endpoint for the assignable-parcel pool.
+     */
+    public function assignData(Trip $trip, Request $request)
+    {
+        $base = $this->assignableParcelQuery($request);
+
+        $columns = [
+            ['key' => 'select', 'orderable' => false, 'searchable' => false],
+            ['key' => 'parcel_code', 'db' => 'order_receives.parcel_code', 'orderable' => true, 'searchable' => true],
+            ['key' => 'order_code', 'orderable' => false, 'searchable' => false],
+            ['key' => 'customer_name', 'orderable' => false, 'searchable' => false],
+            ['key' => 'receive_name', 'db' => 'order_receives.receive_name', 'orderable' => false, 'searchable' => true],
+            ['key' => 'receive_mobile', 'db' => 'order_receives.receive_mobile', 'orderable' => false, 'searchable' => true],
+            ['key' => 'destination', 'orderable' => false, 'searchable' => false],
+            ['key' => 'payment_type', 'orderable' => false, 'searchable' => false],
+            ['key' => 'parcel_pickup_type', 'orderable' => false, 'searchable' => false],
+            ['key' => 'parcel_pice', 'db' => 'order_receives.parcel_pice', 'orderable' => true, 'searchable' => false],
+            ['key' => 'created_at', 'db' => 'order_receives.created_at', 'orderable' => true, 'searchable' => false],
+        ];
+
+        $payload = DataTable::respond($request, $base, $columns, function (OrderReceive $receiver) {
+            $destination = trim(implode(' ', array_filter([
+                $receiver->district_name,
+                $receiver->amphures_name,
+                $receiver->province_name,
+                $receiver->zip_code,
+            ])));
+
+            return [
+                'select' => '<input type="checkbox" class="row-select" value="' . (int) $receiver->id . '">',
+                'parcel_code' => e($receiver->parcel_code),
+                'order_code' => e($receiver->order->code ?? '-'),
+                'customer_name' => e($receiver->order->customer_name ?? '-'),
+                'receive_name' => e($receiver->receive_name),
+                'receive_mobile' => e($receiver->receive_mobile),
+                'destination' => e($destination),
+                'payment_type' => e($receiver->payment_type),
+                'parcel_pickup_type' => e($receiver->parcel_pickup_type),
+                'parcel_pice' => number_format((float) $receiver->getParcelPriceValue(), 2),
+                'created_at' => optional($receiver->created_at)->format('Y-m-d'),
+            ];
+        });
+
+        return response()->json($payload);
+    }
+
+    /**
+     * The assignable-parcel pool query plus the page filters. Shared by assign() and assignData().
+     */
+    private function assignableParcelQuery(Request $request)
+    {
         $query = OrderReceive::query()
             ->with('order')
             ->where(function ($query) {
@@ -191,11 +355,7 @@ class TripController extends Controller
             });
         }
 
-        return view('admin.trip.assign', [
-            'data' => $trip,
-            'candidates' => $query->paginate(20)->appends($request->query()),
-            'selected' => $request->only(['date_from', 'date_to', 'province_name', 'amphures_name', 'payment_type', 'parcel_pickup_type', 'keyword']),
-        ]);
+        return $query;
     }
 
     public function assignItems(Trip $trip, Request $request)

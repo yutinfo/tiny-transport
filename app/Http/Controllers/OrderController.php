@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Order;
 use App\Models\OrderReceive;
 use App\Models\Contact;
+use App\Support\DataTable;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -22,38 +23,125 @@ class OrderController extends Controller
      */
     public function index(Request $request)
     {
-        if($request->has('_token')){
+        $dbDate = $request->filled('db_date')
+            ? Carbon::parse($request->input('db_date'))->format('Y-m-d')
+            : Carbon::now()->format('Y-m-d');
 
-            $param = $request->only(
-                [
-                     "db_date"
-                ]
-            );
-            $start_data = Carbon::parse($param['db_date'])->startOfDay()->format('Y-m-d H:i:s');
-            $end_data = Carbon::parse($param['db_date'])->endOfDay()->format('Y-m-d H:i:s');
-            $order_model = Order::with('receivers')
-                ->whereBetween('created_at', [$start_data, $end_data])
-                ->orderByDesc('id')
-                ->get()
-                ->toArray();
-        }else{
-            $start_data = Carbon::now()->startOfDay()->format('Y-m-d H:i:s');
-            $end_data = Carbon::now()->format('Y-m-d H:i:s');
-            $order_model = Order::with('receivers')
-                ->whereBetween('created_at', [$start_data, $end_data])
-                ->orderByDesc('id')
-                ->get()
-                ->toArray();
-        }
-
-
-        $order_model = $this->wrapDataIndex($order_model);
         return view('admin.order.list', [
-            'data' => $order_model,
-            'selected' =>[
-                $request->all()??""
-            ],
+            'dbDate' => $dbDate,
+            'selectDate' => $request->input('select_date', ''),
+            'summary' => $this->summaryForDate($dbDate),
         ]);
+    }
+
+    /**
+     * Server-side DataTables endpoint for the orders/parcels list. Rows are one
+     * order_receive (parcel) joined to its order so the customer name is searchable.
+     */
+    public function data(Request $request)
+    {
+        $base = OrderReceive::query()
+            ->with('order')
+            ->join('orders', 'orders.id', '=', 'order_receives.order_id')
+            ->select('order_receives.*');
+
+        $this->applyDateFilter($base, $request->input('db_date'));
+
+        $columns = [
+            ['key' => 'row', 'orderable' => false, 'searchable' => false],
+            ['key' => 'created_at', 'db' => 'order_receives.created_at', 'orderable' => true, 'searchable' => false],
+            ['key' => 'parcel_code', 'db' => 'order_receives.parcel_code', 'orderable' => true, 'searchable' => true],
+            ['key' => 'parcel_description', 'orderable' => false, 'searchable' => false],
+            ['key' => 'customer_name', 'db' => 'orders.customer_name', 'orderable' => false, 'searchable' => true],
+            ['key' => 'receive_name', 'db' => 'order_receives.receive_name', 'orderable' => false, 'searchable' => true],
+            ['key' => 'province_name', 'orderable' => false, 'searchable' => false],
+            ['key' => 'parcel_pice', 'db' => 'order_receives.parcel_pice', 'orderable' => true, 'searchable' => false],
+            ['key' => 'payment_type', 'orderable' => false, 'searchable' => false],
+            ['key' => 'parcel_pickup_type', 'orderable' => false, 'searchable' => false],
+            ['key' => 'actions', 'orderable' => false, 'searchable' => false],
+        ];
+
+        $start = max(0, (int) $request->input('start', 0));
+        $i = 0;
+
+        $payload = DataTable::respond($request, $base, $columns, function (OrderReceive $receiver) use ($start, &$i) {
+            return $this->mapOrderRow($receiver, $start + (++$i));
+        });
+
+        // Subtotals follow the filter so the summary card can refresh on each draw.
+        $payload['summary'] = $this->summaryForDate(
+            $request->filled('db_date') ? Carbon::parse($request->input('db_date'))->format('Y-m-d') : Carbon::now()->format('Y-m-d')
+        );
+
+        return response()->json($payload);
+    }
+
+    /**
+     * Apply the single-date page filter (defaults to today) to the order_receives query.
+     */
+    private function applyDateFilter($query, ?string $dbDate): void
+    {
+        $date = $dbDate ? Carbon::parse($dbDate) : Carbon::now();
+        $query->whereBetween('order_receives.created_at', [
+            $date->copy()->startOfDay()->format('Y-m-d H:i:s'),
+            $date->copy()->endOfDay()->format('Y-m-d H:i:s'),
+        ]);
+    }
+
+    /**
+     * Subtotals for the summary card — grouped by payment_type for the filtered date.
+     */
+    private function summaryForDate(string $dbDate): array
+    {
+        $query = OrderReceive::query();
+        $this->applyDateFilter($query, $dbDate);
+
+        return [
+            'immediately_total' => (float) (clone $query)->where('payment_type', 'immediately')->sum('parcel_pice'),
+            'on_delivery_total' => (float) (clone $query)->where('payment_type', 'on_delivery')->sum('parcel_pice'),
+        ];
+    }
+
+    /**
+     * Map one order_receive into the DataTables JSON row (HTML is pre-rendered server-side).
+     */
+    private function mapOrderRow(OrderReceive $receiver, int $rowNumber): array
+    {
+        $pickupLabels = [
+            'pickup' => 'รับที่ร้าน',
+            'delivery' => 'จัดส่งปกติ',
+        ];
+        $paymentLabels = [
+            'immediately' => 'จ่ายเงินทันที',
+            'on_delivery' => 'เก็บเงินปลายทาง',
+        ];
+
+        $order = $receiver->order;
+        $address = trim(implode(' ', array_filter([
+            $receiver->receive_address,
+            $receiver->district_name,
+            $receiver->amphures_name,
+            $receiver->province_name,
+            $receiver->zip_code,
+        ])));
+
+        return [
+            'row' => $rowNumber . '.',
+            'created_at' => $receiver->created_at ? thaiDateFullmonth($receiver->created_at) : '-',
+            'parcel_code' => e($receiver->parcel_code),
+            'parcel_description' => e($receiver->parcel_description),
+            'customer_name' => e(trim(($order->customer_name ?? '') . ' (' . ($order->customer_mobile ?? '') . ')')),
+            'receive_name' => e(trim(($receiver->receive_name ?? '') . ' (' . ($receiver->receive_mobile ?? '') . ')')),
+            'province_name' => e($address),
+            'parcel_pice' => number_format((float) $receiver->getParcelPriceValue(), 2),
+            'payment_type' => $paymentLabels[$receiver->payment_type] ?? 'จัดส่งปกติ',
+            'parcel_pickup_type' => $pickupLabels[$receiver->parcel_pickup_type] ?? '-',
+            'actions' => view('admin.order._row-actions', [
+                'orderId' => $receiver->order_id,
+                'orderReceiveId' => $receiver->id,
+                'customerName' => $order->customer_name ?? '',
+            ])->render(),
+        ];
     }
 
     /**
@@ -542,47 +630,6 @@ class OrderController extends Controller
     {
         $uuid =  substr(str_replace("-", "", Str::uuid()->toString()), 0, 9);
         return strtoupper("P" . date('Y') . $uuid);
-    }
-
-    private function wrapDataIndex($param)
-    {
-        $data_set = [];
-        $parcel_pickup_type = [
-            'pickup' => "รับที่ร้าน",
-            'delivery' => "จัดส่งปกติ"
-        ];
-        $payment_type = [
-            'immediately' => "จ่ายเงินทันที",
-            'on_delivery' => "เก็บเงินปลายทาง"
-        ];
-        $i = 0;
-        // วันที่	รหัสพัสดุ	ชื่อผู้รับ	จังหวัด	จำนวนเงิน	รูปแบบการชำระเงิน	รูปแบบการจัดส่ง
-
-        foreach ($param as  $value) {
-
-            if (count($value['receivers']) >= 1) {
-                foreach ($value['receivers'] as $item) {
-                    $address = $item['receive_address'] ." ". $item['district_name']." ".$item['amphures_name']." ".$item['province_name']." ".$item['zip_code'];
-
-                    $data_set[$i] = [
-                        "created_at" => thaiDateFullmonth($value['created_at']),
-                        "order_id" => $value['id'],
-                        "order_receive_id" => $item['id'],
-                        "parcel_code" => $item['parcel_code'],
-                        "parcel_description" =>$item['parcel_description'],
-                        "customer_name" => $value['customer_name'] . " (" . $value['customer_mobile'] . ")",
-                        "receive_name" => $item['receive_name'] . " (" . $item['receive_mobile'] . ")",
-                        "province_name" => $address,
-                        "parcel_pice" => $item['parcel_pice'],
-                        "payment_type" => $payment_type[$item['payment_type']] ?? "จัดส่งปกติ",
-                        "payment_type_id" => $item['payment_type'],
-                        "parcel_pickup_type" => $parcel_pickup_type[$item['parcel_pickup_type']],
-                    ];
-                    $i++;
-                }
-            }
-        }
-        return $data_set;
     }
 
     private function wrapDataUpdate($param)

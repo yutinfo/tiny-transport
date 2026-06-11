@@ -36,11 +36,15 @@ class ParcelLabelsContactCostApiFeatureTest extends TestCase
             ->assertSee($tripItem->parcel_code)
             ->assertSee('<svg', false);
 
+        // The search results table is now loaded via the server-side DataTables
+        // endpoint; the page seeds the q keyword into the search box and wires the
+        // AJAX endpoint (result rows are covered by ParcelSearchDataTableFeatureTest).
         $this->actingAs($user)
             ->get('/admin/parcels/search?q=' . $receiver->parcel_code)
             ->assertOk()
             ->assertSee($receiver->parcel_code)
-            ->assertSee($receiver->receive_name);
+            ->assertSee('id="parcel_table"', false)
+            ->assertSee('search\/data', false);
 
         $this->actingAs($user)
             ->get('/admin/parcels/code/' . $receiver->parcel_code)

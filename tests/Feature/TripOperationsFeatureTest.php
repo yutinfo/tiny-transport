@@ -267,15 +267,16 @@ class TripOperationsFeatureTest extends TestCase
             ->assertSee('class="ta-form-layout ta-trip-summary-layout"', false)
             ->assertSee('class="card ta-table-card ta-trip-full-width-section"', false)
             ->assertSee('class="ta-trip-cost-form"', false)
-            ->assertSee('class="ta-trip-item-actions"', false)
+            // The items table is now loaded via the server-side DataTables endpoint;
+            // the page renders the table shell + AJAX wiring rather than inline rows.
+            ->assertSee('id="trip_items_table"', false)
+            ->assertSee('items\/data', false)
             ->assertSee('Trips')
             ->assertSee('รอบขนส่ง ' . $trip->code)
             ->assertSee('ภาพรวมรอบขนส่ง')
             ->assertSee('ต้นทุนและกำไรโดยประมาณ')
             ->assertSee('ข้อมูลรอบและการดำเนินการ')
-            ->assertSee('รายการพัสดุในรอบ')
-            ->assertSee($tripItem->parcel_code)
-            ->assertSee($receiver->receive_name);
+            ->assertSee('รายการพัสดุในรอบ');
     }
 
     public function test_trip_csv_exports_stream_thai_excel_friendly_output()

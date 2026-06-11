@@ -24,6 +24,7 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware('role:admin,staff')->group(function () {
         Route::prefix('orders')->group(function () {
             Route::get('/', [App\Http\Controllers\OrderController::class, 'index'])->name('admin.orders.index');
+            Route::get('/data', [App\Http\Controllers\OrderController::class, 'data'])->name('admin.orders.data');
             Route::get('/create', [App\Http\Controllers\OrderController::class, 'create'])->name('admin.orders.create');
             Route::get('/{order}/labels', [App\Http\Controllers\ParcelLabelController::class, 'order'])->name('admin.orders.labels');
             Route::get('/{id}', [App\Http\Controllers\OrderController::class, 'edit'])->name('admin.orders.edit');
@@ -61,10 +62,13 @@ Route::middleware(['auth'])->group(function () {
         });
         Route::prefix('trips')->group(function () {
             Route::get('/', [App\Http\Controllers\TripController::class, 'index'])->name('admin.trips.index');
+            Route::get('/data', [App\Http\Controllers\TripController::class, 'tripsData'])->name('admin.trips.data');
             Route::get('/export/csv', [App\Http\Controllers\TripExportController::class, 'tripsCsv'])->name('admin.trips.export.csv');
             Route::get('/create', [App\Http\Controllers\TripController::class, 'create'])->name('admin.trips.create');
             Route::post('/', [App\Http\Controllers\TripController::class, 'store'])->name('admin.trips.store');
+            Route::get('/{trip}/assign/data', [App\Http\Controllers\TripController::class, 'assignData'])->name('admin.trips.assign.data');
             Route::get('/{trip}/assign', [App\Http\Controllers\TripController::class, 'assign'])->name('admin.trips.assign');
+            Route::get('/{trip}/items/data', [App\Http\Controllers\TripController::class, 'itemsData'])->name('admin.trips.items.data');
             Route::post('/{trip}/assign-items', [App\Http\Controllers\TripController::class, 'assignItems'])->name('admin.trips.assign-items');
             Route::post('/{trip}/assign-status', [App\Http\Controllers\TripController::class, 'assignStatus'])->name('admin.trips.assign-status');
             Route::post('/{trip}/start', [App\Http\Controllers\TripController::class, 'start'])->name('admin.trips.start');
@@ -85,6 +89,7 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('/trip-costs/{tripCost}', [App\Http\Controllers\TripCostController::class, 'destroy'])->name('admin.trip-costs.destroy');
         Route::post('/driver/trip-items/{tripItem}/delivery-status', [App\Http\Controllers\DriverTripController::class, 'updateDeliveryStatus'])->name('admin.driver.trip-items.delivery-status');
         Route::post('/driver/trip-items/{tripItem}/payment-status', [App\Http\Controllers\DriverTripController::class, 'updatePaymentStatus'])->name('admin.driver.trip-items.payment-status');
+        Route::get('/parcels/search/data', [App\Http\Controllers\ParcelTrackingController::class, 'searchData'])->name('admin.parcels.search.data');
         Route::get('/parcels/search', [App\Http\Controllers\ParcelTrackingController::class, 'search'])->name('admin.parcels.search');
         Route::get('/parcels/code/{parcelCode}', [App\Http\Controllers\ParcelTrackingController::class, 'code'])->name('admin.parcels.code');
         Route::get('/parcels/{orderReceive}/tracking', [App\Http\Controllers\ParcelTrackingController::class, 'show'])->name('admin.parcels.tracking');

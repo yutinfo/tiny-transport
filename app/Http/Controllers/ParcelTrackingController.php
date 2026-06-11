@@ -4,28 +4,62 @@ namespace App\Http\Controllers;
 
 use App\Models\OrderReceive;
 use App\Models\TripItem;
+use App\Support\DataTable;
 use Illuminate\Http\Request;
 
 class ParcelTrackingController extends Controller
 {
     public function search(Request $request)
     {
-        $keyword = trim((string) $request->input('q', ''));
-        $parcels = collect();
-
-        if ($keyword !== '') {
-            $parcels = OrderReceive::query()
-                ->with(['order', 'tripItems.trip'])
-                ->where('parcel_code', 'like', '%' . $keyword . '%')
-                ->orderByDesc('id')
-                ->limit(20)
-                ->get();
-        }
-
         return view('admin.parcel.search', [
-            'keyword' => $keyword,
-            'parcels' => $parcels,
+            'keyword' => trim((string) $request->input('q', '')),
         ]);
+    }
+
+    /**
+     * Server-side DataTables endpoint for parcel search. Shows all parcels and
+     * searches in MySQL; the page's q box feeds the DataTables global search.
+     */
+    public function searchData(Request $request)
+    {
+        $base = OrderReceive::query()
+            ->with(['order', 'tripItems.trip'])
+            ->orderByDesc('id');
+
+        $columns = [
+            ['key' => 'parcel_code', 'db' => 'order_receives.parcel_code', 'orderable' => true, 'searchable' => true],
+            ['key' => 'order_code', 'orderable' => false, 'searchable' => false],
+            ['key' => 'receive_name', 'db' => 'order_receives.receive_name', 'orderable' => false, 'searchable' => true],
+            ['key' => 'destination', 'orderable' => false, 'searchable' => false],
+            ['key' => 'delivery_status', 'orderable' => false, 'searchable' => false],
+            ['key' => 'created_at', 'db' => 'order_receives.created_at', 'orderable' => true, 'searchable' => false],
+            ['key' => 'actions', 'orderable' => false, 'searchable' => false],
+        ];
+
+        $payload = DataTable::respond($request, $base, $columns, function (OrderReceive $parcel) {
+            $destination = trim(implode(' ', array_filter([
+                $parcel->receive_address,
+                $parcel->district_name,
+                $parcel->amphures_name,
+                $parcel->province_name,
+                $parcel->zip_code,
+            ])));
+
+            $status = $parcel->delivery_status ?: TripItem::DELIVERY_STATUS_WAITING;
+
+            return [
+                'parcel_code' => e($parcel->parcel_code),
+                'order_code' => e($parcel->order->code ?? '-'),
+                'receive_name' => e($parcel->receive_name ?: '-')
+                    . '<small class="d-block text-muted">' . e($parcel->receive_mobile) . '</small>',
+                'destination' => e($destination),
+                'delivery_status' => e(TripItem::deliveryStatusLabel($status)),
+                'created_at' => optional($parcel->created_at)->format('Y-m-d'),
+                'actions' => view('admin.parcel._row-actions', ['parcel' => $parcel])->render(),
+            ];
+        });
+
+        return response()->json($payload);
     }
 
     public function code(string $parcelCode)

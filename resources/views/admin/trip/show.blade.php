@@ -1,5 +1,17 @@
 @extends('layouts.app')
 
+@section('third_party_stylesheets')
+<link rel="stylesheet" href="/plugins/datatables-bs4/css/dataTables.bootstrap4.min.css">
+<link rel="stylesheet" href="/plugins/datatables-responsive/css/responsive.bootstrap4.min.css">
+@endsection
+
+@section('third_party_scripts')
+<script src="/plugins/datatables/jquery.dataTables.min.js"></script>
+<script src="/plugins/datatables-bs4/js/dataTables.bootstrap4.min.js"></script>
+<script src="/plugins/datatables-responsive/js/dataTables.responsive.min.js"></script>
+<script src="/plugins/datatables-responsive/js/responsive.bootstrap4.min.js"></script>
+@endsection
+
 @php
     $tripDateLabel = optional($data->trip_date)->format('Y-m-d');
     $overviewCards = [
@@ -299,7 +311,7 @@
             </div>
         </div>
         <div class="card-body p-0 table-responsive">
-            <table class="table table-striped table-bordered mb-0 ta-trip-items-table">
+            <table class="table table-striped table-bordered mb-0 ta-trip-items-table" id="trip_items_table" style="width:100%">
                 <thead>
                     <tr>
                         <th>รหัสพัสดุ</th>
@@ -313,126 +325,36 @@
                         <th style="min-width: 320px;">ดำเนินการ</th>
                     </tr>
                 </thead>
-                <tbody>
-                    @forelse($items as $item)
-                        @php($receiver = $item->orderReceive)
-                        <tr>
-                            <td>{{ $item->parcel_code }}</td>
-                            <td>{{ $item->order->code ?? '-' }}</td>
-                            <td>
-                                {{ $receiver->receive_name ?? '-' }}
-                                <small class="d-block text-muted">{{ $receiver->receive_mobile ?? '' }}</small>
-                            </td>
-                            <td>
-                                {{ $receiver->receive_address ?? '' }}
-                                <small class="d-block text-muted">{{ $receiver->district_name }} {{ $receiver->amphures_name }} {{ $receiver->province_name }} {{ $receiver->zip_code }}</small>
-                            </td>
-                            <td class="text-right">{{ number_format($item->cod_amount, 2) }}</td>
-                            <td class="text-right">{{ number_format($item->collected_amount, 2) }}</td>
-                            <td><span class="badge {{ $item->delivery_status_badge_class }}">{{ $item->delivery_status_label }}</span></td>
-                            <td><span class="badge {{ $item->payment_status_badge_class }}">{{ $item->payment_status_label }}</span></td>
-                            <td>
-                                <div class="ta-trip-item-actions">
-                                    <div class="ta-trip-item-actions__header">
-                                        @if($receiver)
-                                            <a href="{{ route('admin.parcels.tracking', $receiver) }}" class="btn btn-default btn-xs"><i class="fas fa-history"></i> ดูประวัติ</a>
-                                        @endif
-                                        @if($readOnly)
-                                            <span class="text-muted small align-self-center">อ่านอย่างเดียว</span>
-                                        @endif
-                                    </div>
-
-                                    @if(! $readOnly)
-                                        <details class="ta-trip-item-details">
-                                            <summary>อัปเดตสถานะจัดส่ง</summary>
-                                            <div class="ta-trip-item-details__body">
-                                                <form action="{{ route('admin.trip-items.delivery-status', $item) }}" method="POST">
-                                                    @csrf
-                                                    <div class="ta-trip-item-form-grid">
-                                                        <div class="ta-trip-item-form-grid__full">
-                                                            <select name="delivery_status" class="form-control form-control-sm">
-                                                                @foreach($deliveryStatusLabels as $status => $label)
-                                                                    <option value="{{ $status }}" {{ $item->delivery_status === $status ? 'selected' : '' }}>{{ $label }}</option>
-                                                                @endforeach
-                                                            </select>
-                                                        </div>
-                                                        <div>
-                                                            <input type="text" name="failed_reason" class="form-control form-control-sm" placeholder="เหตุผล/หมายเหตุ">
-                                                        </div>
-                                                        <div>
-                                                            <input type="text" name="note" class="form-control form-control-sm" placeholder="หมายเหตุ">
-                                                        </div>
-                                                    </div>
-                                                    <div class="ta-trip-item-action-footer">
-                                                        <button type="submit" class="btn bg-info btn-xs"><i class="fas fa-save"></i> บันทึกสถานะ</button>
-                                                    </div>
-                                                </form>
-                                            </div>
-                                        </details>
-
-                                        <details class="ta-trip-item-details">
-                                            <summary>อัปเดตการชำระเงิน</summary>
-                                            <div class="ta-trip-item-details__body">
-                                                <form action="{{ route('admin.trip-items.payment-status', $item) }}" method="POST">
-                                                    @csrf
-                                                    <div class="ta-trip-item-form-grid">
-                                                        <div>
-                                                            <select name="payment_status" class="form-control form-control-sm">
-                                                                @foreach($paymentStatusLabels as $status => $label)
-                                                                    <option value="{{ $status }}" {{ $item->payment_status === $status ? 'selected' : '' }}>{{ $label }}</option>
-                                                                @endforeach
-                                                            </select>
-                                                        </div>
-                                                        <div>
-                                                            <input type="number" step="0.01" min="0" name="collected_amount" value="{{ $item->collected_amount }}" class="form-control form-control-sm text-right" placeholder="ยอดเงิน">
-                                                        </div>
-                                                        <div class="ta-trip-item-form-grid__full">
-                                                            <input type="text" name="note" class="form-control form-control-sm" placeholder="หมายเหตุ">
-                                                        </div>
-                                                    </div>
-                                                    <div class="ta-trip-item-action-footer">
-                                                        <button type="submit" class="btn bg-success btn-xs"><i class="fas fa-save"></i> บันทึกการชำระ</button>
-                                                    </div>
-                                                </form>
-                                            </div>
-                                        </details>
-
-                                        @if(in_array($data->status, [\App\Models\Trip::STATUS_DRAFT, \App\Models\Trip::STATUS_ASSIGNED], true))
-                                            <div class="ta-trip-item-actions__remove">
-                                                <form action="{{ route('admin.trip-items.remove', $item) }}" method="POST" onsubmit="return confirm('ลบพัสดุออกจากรอบ?')">
-                                                    @csrf
-                                                    <button type="submit" class="btn bg-danger btn-xs"><i class="fas fa-trash"></i> ลบออกจากรอบ</button>
-                                                </form>
-                                            </div>
-                                        @endif
-                                    @endif
-
-                                    @if($receiver && $receiver->statusLogs->count())
-                                        <details class="ta-trip-item-details">
-                                            <summary>ประวัติสถานะ</summary>
-                                            <div class="ta-trip-item-details__body">
-                                                @foreach($receiver->statusLogs->sortByDesc('created_at') as $log)
-                                                    <small class="d-block">{{ $log->created_at }}: {{ $log->from_status ?: '-' }} → {{ $log->to_status }} {{ $log->note }}</small>
-                                                @endforeach
-                                            </div>
-                                        </details>
-                                    @endif
-                                </div>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="9">
-                                <div class="ta-empty-state">
-                                    <div class="ta-empty-state__icon"><i class="fas fa-box-open"></i></div>
-                                    <div>ยังไม่มีพัสดุในรอบนี้</div>
-                                </div>
-                            </td>
-                        </tr>
-                    @endforelse
-                </tbody>
+                <tbody></tbody>
             </table>
         </div>
     </section>
 </div>
 @endsection
+
+@push('page_scripts')
+<script>
+$(function () {
+    $('#trip_items_table').DataTable({
+        processing: true,
+        serverSide: true,
+        responsive: true,
+        autoWidth: false,
+        order: [[0, 'asc']],
+        ajax: @json(route('admin.trips.items.data', $data)),
+        columns: [
+            { data: 'parcel_code' },
+            { data: 'order_code', orderable: false, searchable: false },
+            { data: 'receive_name', orderable: false },
+            { data: 'address', orderable: false, searchable: false },
+            { data: 'cod_amount', className: 'text-right', searchable: false },
+            { data: 'collected_amount', className: 'text-right', orderable: false, searchable: false },
+            { data: 'delivery_status' },
+            { data: 'payment_status', orderable: false, searchable: false },
+            { data: 'actions', orderable: false, searchable: false }
+        ],
+        language: @include('admin.partials._datatables-th')
+    });
+});
+</script>
+@endpush

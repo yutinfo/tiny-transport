@@ -13,6 +13,9 @@ use Illuminate\Support\Facades\Route;
 | is assigned the "api" middleware group. Enjoy building your API!
 |
 */
+// Public parcel tracking — no authentication required.
+Route::get('/track', [App\Http\Controllers\PublicTrackingController::class, 'track'])->name('api.public.track');
+
 Route::get('/province', [App\Http\Controllers\Api\ProvinceController::class, 'index'])->name('api.province.index');
 Route::get('/province/{id}', [App\Http\Controllers\Api\ProvinceController::class, 'show'])->name('api.province.show');
 

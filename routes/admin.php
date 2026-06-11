@@ -42,6 +42,22 @@ Route::middleware(['auth'])->group(function () {
         Route::prefix('api')->group(function () {
             Route::get('/contacts/suggest', [App\Http\Controllers\Api\ContactController::class, 'suggest'])->name('admin.api.contacts.suggest');
             Route::get('/contacts/search', [App\Http\Controllers\Api\ContactController::class, 'search'])->name('admin.api.contacts.search');
+            Route::get('/drivers/availability', [App\Http\Controllers\DriverController::class, 'availability'])->name('admin.api.drivers.availability');
+        });
+        // Driver master data — read access for admin + staff (index/show).
+        Route::prefix('drivers')->group(function () {
+            Route::get('/', [App\Http\Controllers\DriverController::class, 'index'])->name('admin.drivers.index');
+            // Write actions are admin-only.
+            Route::middleware('role:admin')->group(function () {
+                Route::get('/create', [App\Http\Controllers\DriverController::class, 'create'])->name('admin.drivers.create');
+                Route::post('/', [App\Http\Controllers\DriverController::class, 'store'])->name('admin.drivers.store');
+                Route::get('/{driver}/edit', [App\Http\Controllers\DriverController::class, 'edit'])->name('admin.drivers.edit');
+                Route::put('/{driver}', [App\Http\Controllers\DriverController::class, 'update'])->name('admin.drivers.update');
+                Route::delete('/{driver}', [App\Http\Controllers\DriverController::class, 'destroy'])->name('admin.drivers.destroy');
+                Route::post('/{driver}/toggle-status', [App\Http\Controllers\DriverController::class, 'toggleStatus'])->name('admin.drivers.toggle-status');
+                Route::post('/{driver}/reset-password', [App\Http\Controllers\DriverController::class, 'resetPassword'])->name('admin.drivers.reset-password');
+            });
+            Route::get('/{driver}', [App\Http\Controllers\DriverController::class, 'show'])->name('admin.drivers.show');
         });
         Route::prefix('trips')->group(function () {
             Route::get('/', [App\Http\Controllers\TripController::class, 'index'])->name('admin.trips.index');

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Driver;
 use App\Models\OrderReceive;
 use App\Models\Trip;
 use App\Models\TripCost;
@@ -11,6 +12,7 @@ use App\Services\TripService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use InvalidArgumentException;
 
 class TripController extends Controller
@@ -52,18 +54,14 @@ class TripController extends Controller
             'data' => new Trip([
                 'trip_date' => now()->toDateString(),
             ]),
-            'drivers' => User::query()
-                ->where('role_name', User::ROLE_DRIVER)
-                ->where('status', 'active')
-                ->orderBy('name')
-                ->orderBy('last_name')
-                ->get(),
+            'drivers' => $this->driversForForm(),
+            'legacyDriverUsers' => $this->legacyDriverUsers(),
         ]);
     }
 
     public function store(Request $request)
     {
-        $data = $this->applySelectedDriver($this->validatedTripData($request));
+        $data = $this->applySelectedDriver($this->validatedTripData($request), $request);
         $data['created_by'] = Auth::user()->name ?? null;
         $data['updated_by'] = Auth::user()->name ?? null;
 
@@ -108,12 +106,8 @@ class TripController extends Controller
 
         return view('admin.trip.edit', [
             'data' => $trip,
-            'drivers' => User::query()
-                ->where('role_name', User::ROLE_DRIVER)
-                ->where('status', 'active')
-                ->orderBy('name')
-                ->orderBy('last_name')
-                ->get(),
+            'drivers' => $this->driversForForm($trip->driver_id),
+            'legacyDriverUsers' => $this->legacyDriverUsers(),
         ]);
     }
 
@@ -123,7 +117,7 @@ class TripController extends Controller
             return redirect()->route('admin.trips.show', $trip)->withErrors(['trip' => 'รอบขนส่งที่เสร็จสิ้นหรือยกเลิกแล้วแก้ไขไม่ได้']);
         }
 
-        $data = $this->applySelectedDriver($this->validatedTripData($request));
+        $data = $this->applySelectedDriver($this->validatedTripData($request, $trip), $request, $trip);
         $data['updated_by'] = Auth::user()->name ?? null;
         $trip->update($data);
 
@@ -297,10 +291,22 @@ class TripController extends Controller
         return redirect()->route('admin.trips.show', $tripItem->trip_id)->with('success', 'บันทึกสถานะชำระเงินแล้ว');
     }
 
-    private function validatedTripData(Request $request): array
+    private function validatedTripData(Request $request, ?Trip $trip = null): array
     {
         return $request->validate([
             'trip_date' => ['required', 'date'],
+            'driver_id' => [
+                'nullable',
+                // Must be an existing driver and active — unless it is the value already
+                // saved on the trip being edited (a driver may have been deactivated since).
+                Rule::exists('drivers', 'id')->where(function ($query) use ($trip) {
+                    $query->where('status', Driver::STATUS_ACTIVE);
+
+                    if ($trip && $trip->driver_id) {
+                        $query->orWhere('id', $trip->driver_id);
+                    }
+                }),
+            ],
             'driver_user_id' => [
                 'nullable',
                 Rule::exists('users', 'id')->where(function ($query) {
@@ -317,8 +323,10 @@ class TripController extends Controller
             'date' => ':attribute รูปแบบวันที่ไม่ถูกต้อง',
             'regex' => ':attribute ต้องเป็นตัวเลข 9 ถึง 10 หลัก',
             'max' => ':attribute ยาวเกินไป',
+            'exists' => ':attribute ไม่ถูกต้องหรือถูกปิดใช้งานแล้ว',
         ], [
             'trip_date' => 'วันที่รอบขนส่ง',
+            'driver_id' => 'คนขับรถ',
             'driver_name' => 'ชื่อพนักงานขับรถ',
             'driver_mobile' => 'เบอร์โทรศัพท์พนักงานขับรถ',
             'car_id' => 'ทะเบียนรถ',
@@ -337,21 +345,102 @@ class TripController extends Controller
         return redirect()->route('admin.trips.show', $trip)->with('success', $message);
     }
 
-    private function applySelectedDriver(array $data): array
+    /**
+     * When a driver (master record) is selected, snapshot its details onto the trip
+     * and link the driver's login account. The snapshot fields stay editable per trip
+     * (the form may override them), so we only fill from the master when the field is
+     * left blank by the user.
+     *
+     * Also enforces the busy guard server-side: if the driver already has a
+     * non-cancelled trip on that date and confirm_busy was not sent, fail validation.
+     */
+    private function applySelectedDriver(array $data, Request $request, ?Trip $trip = null): array
     {
-        if (empty($data['driver_user_id'])) {
-            return $data;
+        if (empty($data['driver_id'])) {
+            // No master driver chosen — fall back to the legacy free-text behaviour,
+            // including the old driver_user_id dropdown if it was used.
+            return $this->applyLegacyDriverUser($data);
         }
 
-        $driver = User::find($data['driver_user_id']);
+        $driver = Driver::find($data['driver_id']);
 
         if (! $driver) {
             return $data;
         }
 
-        $data['driver_name'] = trim($driver->name . ' ' . $driver->last_name);
+        $this->guardDriverBusy($driver, $data['trip_date'], $request, $trip);
+
+        // Master record drives the snapshot + linked login account.
+        $data['driver_user_id'] = $driver->user_id;
+        $data['driver_name'] = $request->filled('driver_name') ? $data['driver_name'] : $driver->full_name;
+        $data['driver_mobile'] = $request->filled('driver_mobile') ? $data['driver_mobile'] : $driver->mobile;
+        $data['car_id'] = $request->filled('car_id') ? $data['car_id'] : $driver->license_plate;
+        $data['area_name'] = $request->filled('area_name') ? $data['area_name'] : $driver->area_name;
 
         return $data;
+    }
+
+    private function applyLegacyDriverUser(array $data): array
+    {
+        $data['driver_id'] = null;
+
+        if (empty($data['driver_user_id'])) {
+            return $data;
+        }
+
+        $user = User::find($data['driver_user_id']);
+
+        if ($user && empty($data['driver_name'])) {
+            $data['driver_name'] = trim($user->name . ' ' . $user->last_name);
+        }
+
+        return $data;
+    }
+
+    private function guardDriverBusy(Driver $driver, string $tripDate, Request $request, ?Trip $trip = null): void
+    {
+        if ($request->boolean('confirm_busy')) {
+            return;
+        }
+
+        $busyTrip = Trip::query()
+            ->whereDate('trip_date', $tripDate)
+            ->where('driver_id', $driver->id)
+            ->where('status', '!=', Trip::STATUS_CANCELLED)
+            ->when($trip, fn ($q) => $q->where('id', '!=', $trip->id))
+            ->orderByDesc('id')
+            ->first();
+
+        if ($busyTrip) {
+            throw ValidationException::withMessages([
+                'driver_id' => 'คนขับมีรอบ ' . $busyTrip->code . ' ในวันที่นี้แล้ว หากต้องการจัดรอบซ้อนให้กดยืนยัน',
+            ]);
+        }
+    }
+
+    private function legacyDriverUsers()
+    {
+        return User::query()
+            ->where('role_name', User::ROLE_DRIVER)
+            ->where('status', 'active')
+            ->orderBy('name')
+            ->orderBy('last_name')
+            ->get();
+    }
+
+    private function driversForForm(?int $includeDriverId = null)
+    {
+        return Driver::query()
+            ->where(function ($query) use ($includeDriverId) {
+                $query->where('status', Driver::STATUS_ACTIVE);
+
+                if ($includeDriverId) {
+                    $query->orWhere('id', $includeDriverId);
+                }
+            })
+            ->orderBy('name')
+            ->orderBy('last_name')
+            ->get();
     }
 
     private function isReadOnly(Trip $trip): bool

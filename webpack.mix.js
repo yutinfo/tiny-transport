@@ -15,3 +15,7 @@ mix.js('resources/js/app.js', 'public/js')
     .sass('resources/sass/app.scss', 'public/css')
     .copyDirectory('node_modules/admin-lte/plugins/chart.js', 'public/plugins/chart.js')
     .version();
+
+// Public parcel tracking page (Vue 3 SPA). Separate entry, served as a static
+// /js/web.js by resources/views/web/tracking.blade.php.
+mix.js('resources/js/web/app.js', 'public/js/web.js').vue({ version: 3 });

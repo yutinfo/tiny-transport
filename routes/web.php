@@ -20,6 +20,8 @@ Route::get('/', function () {
 
     return redirect('admin');
 });
+Route::get('/web', fn () => view('web.tracking'))->name('web.tracking');
+
 Route::get('/login', [App\Http\Controllers\LoginController::class, 'show'])->name('login.show');
 Route::post('/login', [App\Http\Controllers\LoginController::class, 'login'])->name('login.login');
 Route::post('/logout', [App\Http\Controllers\LogoutController::class, 'perform'])->name('login.logout');

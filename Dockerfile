@@ -1,13 +1,3 @@
-FROM node:16-alpine AS assets
-
-WORKDIR /app
-
-COPY package.json package-lock.json webpack.mix.js ./
-COPY resources ./resources
-COPY public ./public
-
-RUN npm install --legacy-peer-deps && npm run production
-
 FROM composer:2 AS vendor
 
 WORKDIR /app
@@ -41,7 +31,7 @@ COPY docker/entrypoint.sh /usr/local/bin/docker-entrypoint
 
 COPY . .
 COPY --from=vendor /app/vendor ./vendor
-COPY --from=assets /app/public ./public
+# Frontend assets are pre-compiled and committed under public/ (brought in by COPY . .)
 
 RUN chmod +x /usr/local/bin/docker-entrypoint \
     && chown -R www-data:www-data storage bootstrap/cache

@@ -1,14 +1,23 @@
 @extends('layouts.driver')
 
 @section('content')
-<div class="driver-topbar">
-    <a href="{{ route('driver.dashboard') }}" class="btn btn-sm btn-outline-secondary">
-        <i class="fas fa-arrow-left"></i> กลับ
-    </a>
-    <div>
-        <strong>รายละเอียดงาน</strong>
+<div class="driver-detail-hero">
+    <div class="driver-detail-bar">
+        <a href="{{ route('driver.dashboard') }}" class="driver-back-btn" aria-label="กลับ">
+            <i class="fas fa-arrow-left"></i>
+        </a>
+        <span class="driver-detail-title">รายละเอียดงาน</span>
+        <span class="driver-back-btn driver-back-btn--spacer" aria-hidden="true"></span>
     </div>
-    <div style="width: 50px;"></div> {{-- spacer to center title --}}
+    <div class="d-flex justify-content-between align-items-end mt-3">
+        <h4 class="driver-detail-code mb-0">{{ $data->code }}</h4>
+        <span class="badge {{ $data->status_badge_class }}">{{ $data->status_label }}</span>
+    </div>
+    <div class="driver-detail-meta">
+        <span><i class="far fa-calendar-alt mr-1"></i>{{ optional($data->trip_date)->format('Y-m-d') ?: '-' }}</span>
+        <span><i class="fas fa-truck mr-1"></i>{{ $data->car_id ?: '-' }}</span>
+        <span><i class="fas fa-map-marker-alt mr-1"></i>{{ $data->area_name ?: '-' }}</span>
+    </div>
 </div>
 
 <div class="driver-content">
@@ -26,18 +35,6 @@
     @if($readOnly)
         <div class="alert alert-warning py-2 small">รอบขนส่งนี้เสร็จสิ้นหรือยกเลิกแล้ว แสดงผลแบบอ่านอย่างเดียว</div>
     @endif
-
-    <div class="driver-trip-card mb-3">
-        <div class="d-flex justify-content-between align-items-center mb-2">
-            <h5 class="font-weight-bold mb-0">{{ $data->code }}</h5>
-            <span class="badge {{ $data->status_badge_class }}">{{ $data->status_label }}</span>
-        </div>
-        <div class="small">
-            <div><strong>วันที่:</strong> {{ optional($data->trip_date)->format('Y-m-d') }}</div>
-            <div><strong>ทะเบียนรถ:</strong> {{ $data->car_id ?: '-' }}</div>
-            <div><strong>พื้นที่:</strong> {{ $data->area_name ?: '-' }}</div>
-        </div>
-    </div>
 
     @if($data->status === \App\Models\Trip::STATUS_ASSIGNED)
         <div class="mb-3">

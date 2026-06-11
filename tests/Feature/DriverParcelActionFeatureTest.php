@@ -17,17 +17,100 @@ class DriverParcelActionFeatureTest extends TestCase
     public function test_driver_can_update_own_trip_item_delivery_status()
     {
         [$driver, $trip, $item] = $this->createDriverTripItem();
- 
+        // A non-COD parcel can be delivered directly (no money to collect).
+        $item->update(['cod_amount' => 0]);
+
         $this->actingAs($driver)
             ->post('/driver/trip-items/' . $item->id . '/delivery-status', [
                 'delivery_status' => TripItem::DELIVERY_STATUS_DELIVERED,
                 'note' => 'ส่งสำเร็จ',
             ])
             ->assertRedirect('/driver/trips/' . $trip->id);
- 
+
         $this->assertDatabaseHas('trip_items', [
             'id' => $item->id,
             'delivery_status' => TripItem::DELIVERY_STATUS_DELIVERED,
+        ]);
+    }
+
+    public function test_driver_cannot_mark_cod_parcel_delivered_before_collecting()
+    {
+        [$driver, $trip, $item] = $this->createDriverTripItem();
+
+        $this->actingAs($driver)
+            ->from('/driver/trips/' . $trip->id)
+            ->post('/driver/trip-items/' . $item->id . '/delivery-status', [
+                'delivery_status' => TripItem::DELIVERY_STATUS_DELIVERED,
+                'note' => 'ส่งสำเร็จ',
+            ])
+            ->assertRedirect('/driver/trips/' . $trip->id)
+            ->assertSessionHasErrors('delivery_status');
+
+        $this->assertDatabaseHas('trip_items', [
+            'id' => $item->id,
+            'delivery_status' => TripItem::DELIVERY_STATUS_WAITING,
+        ]);
+    }
+
+    public function test_driver_can_collect_cod_then_mark_delivered()
+    {
+        [$driver, $trip, $item] = $this->createDriverTripItem();
+
+        $this->actingAs($driver)
+            ->post('/driver/trip-items/' . $item->id . '/payment-status', [
+                'payment_status' => TripItem::PAYMENT_STATUS_PAID,
+                'collected_amount' => 125.75,
+            ])
+            ->assertRedirect('/driver/trips/' . $trip->id);
+
+        $this->assertDatabaseHas('trip_items', [
+            'id' => $item->id,
+            'payment_status' => TripItem::PAYMENT_STATUS_PAID,
+            'collected_amount' => 125.75,
+        ]);
+
+        $this->actingAs($driver)
+            ->post('/driver/trip-items/' . $item->id . '/delivery-status', [
+                'delivery_status' => TripItem::DELIVERY_STATUS_DELIVERED,
+                'note' => 'ส่งสำเร็จ',
+            ])
+            ->assertRedirect('/driver/trips/' . $trip->id);
+
+        $this->assertDatabaseHas('trip_items', [
+            'id' => $item->id,
+            'delivery_status' => TripItem::DELIVERY_STATUS_DELIVERED,
+        ]);
+    }
+
+    public function test_driver_can_return_unpaid_cod_parcel_with_reason()
+    {
+        [$driver, $trip, $item] = $this->createDriverTripItem();
+        $receiverId = $item->order_receive_id;
+
+        // returning REQUIRES a reason now
+        $this->actingAs($driver)
+            ->from('/driver/trips/' . $trip->id)
+            ->post('/driver/trip-items/' . $item->id . '/delivery-status', [
+                'delivery_status' => TripItem::DELIVERY_STATUS_RETURNED,
+            ])
+            ->assertSessionHasErrors('failed_reason');
+
+        // with a reason it succeeds and is terminal (parcel NOT re-queued)
+        $this->actingAs($driver)
+            ->post('/driver/trip-items/' . $item->id . '/delivery-status', [
+                'delivery_status' => TripItem::DELIVERY_STATUS_RETURNED,
+                'failed_reason' => 'COD ไม่จ่าย',
+            ])
+            ->assertRedirect('/driver/trips/' . $trip->id);
+
+        $this->assertDatabaseHas('trip_items', [
+            'id' => $item->id,
+            'delivery_status' => TripItem::DELIVERY_STATUS_RETURNED,
+            'failed_reason' => 'COD ไม่จ่าย',
+        ]);
+        $this->assertDatabaseHas('order_receives', [
+            'id' => $receiverId,
+            'delivery_status' => TripItem::DELIVERY_STATUS_RETURNED,
         ]);
     }
  

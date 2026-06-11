@@ -147,25 +147,39 @@
                                         <button type="submit" class="btn bg-success btn-sm"><i class="fas fa-check"></i> ส่งสำเร็จ</button>
                                     </form>
 
-                                    <form action="{{ route('admin.driver.trip-items.delivery-status', $item) }}" method="POST" class="d-inline">
-                                        @csrf
-                                        <input type="hidden" name="delivery_status" value="{{ \App\Models\TripItem::DELIVERY_STATUS_RETURNED }}">
-                                        <input type="hidden" name="note" value="ตีกลับ">
-                                        <button type="submit" class="btn bg-warning btn-sm"><i class="fas fa-undo"></i> ตีกลับ</button>
-                                    </form>
-
                                     <form action="{{ route('admin.driver.trip-items.delivery-status', $item) }}" method="POST" class="mt-2">
                                         @csrf
                                         <input type="hidden" name="delivery_status" value="{{ \App\Models\TripItem::DELIVERY_STATUS_FAILED }}">
+                                        <label class="small text-danger mb-1 d-block"><i class="fas fa-redo"></i> ส่งไม่สำเร็จ (ส่งรอบหน้าได้)</label>
                                         <div class="input-group input-group-sm">
                                             <select name="failed_reason" class="form-control" required>
+                                                <option value="">-- เหตุผล --</option>
                                                 @foreach($failedReasons as $reason)
                                                     <option value="{{ $reason }}">{{ $reason }}</option>
                                                 @endforeach
                                             </select>
                                             <input type="text" name="note" class="form-control" placeholder="หมายเหตุ">
                                             <div class="input-group-append">
-                                                <button type="submit" class="btn bg-danger"><i class="fas fa-times"></i> ส่งไม่สำเร็จ</button>
+                                                <button type="submit" class="btn bg-danger"><i class="fas fa-times"></i> บันทึก</button>
+                                            </div>
+                                        </div>
+                                    </form>
+
+                                    <form action="{{ route('admin.driver.trip-items.delivery-status', $item) }}" method="POST" class="mt-2"
+                                          onsubmit="return confirm('ยืนยันตีกลับ — ส่งคืนคลัง? พัสดุนี้จะถูกปิดงานและจะไม่ถูกจัดส่งซ้ำ');">
+                                        @csrf
+                                        <input type="hidden" name="delivery_status" value="{{ \App\Models\TripItem::DELIVERY_STATUS_RETURNED }}">
+                                        <label class="small text-warning mb-1 d-block"><i class="fas fa-undo"></i> ตีกลับ (ส่งคืนคลัง · จบงาน)</label>
+                                        <div class="input-group input-group-sm">
+                                            <select name="failed_reason" class="form-control" required>
+                                                <option value="">-- เหตุผลตีกลับ --</option>
+                                                @foreach($returnReasons as $reason)
+                                                    <option value="{{ $reason }}">{{ $reason }}</option>
+                                                @endforeach
+                                            </select>
+                                            <input type="text" name="note" class="form-control" placeholder="หมายเหตุ">
+                                            <div class="input-group-append">
+                                                <button type="submit" class="btn bg-warning"><i class="fas fa-undo"></i> ตีกลับ</button>
                                             </div>
                                         </div>
                                     </form>

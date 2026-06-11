@@ -43464,6 +43464,354 @@ textarea.form-control {
     opacity: 1;
   }
 }
+/* ---- Jobs: KPI strip in hero ---- */
+.driver-kpi {
+  display: flex;
+  align-items: stretch;
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  padding: 10px 4px;
+}
+
+.driver-kpi-item {
+  flex: 1;
+  text-align: center;
+  min-width: 0;
+}
+
+.driver-kpi-value {
+  font-size: 1.15rem;
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.driver-kpi-label {
+  font-size: 0.68rem;
+  opacity: 0.85;
+  margin-top: 2px;
+}
+
+.driver-kpi-sep {
+  width: 1px;
+  background: rgba(255, 255, 255, 0.25);
+  margin: 2px 0;
+}
+
+/* ---- Jobs: section header + count chip ---- */
+.driver-section-title {
+  font-size: 1rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.driver-count-chip {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #475569;
+  background: #f1f5f9;
+  padding: 3px 12px;
+  border-radius: 999px;
+}
+
+/* ---- Trip card: delivery progress + pill badge ---- */
+.driver-trip-card--rich {
+  display: block;
+}
+.driver-trip-card--rich::before {
+  bottom: auto;
+  height: 100%;
+}
+
+.driver-trip-card .badge {
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-weight: 600;
+}
+
+.driver-trip-card .trip-meta {
+  color: #475569;
+}
+
+.driver-progress-label {
+  font-size: 0.78rem;
+  color: #64748b;
+  margin-bottom: 6px;
+}
+
+.driver-progress {
+  height: 6px;
+  background: #eef2f7;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.driver-progress-bar {
+  height: 100%;
+  min-width: 6px;
+  background: #2563eb;
+  border-radius: 999px;
+  transition: width 0.3s ease;
+}
+
+/* ---- App-like bottom tab bar ---- */
+.driver-app--tabbar .driver-content {
+  padding-bottom: calc(88px + env(safe-area-inset-bottom));
+}
+
+.driver-tabbar {
+  position: fixed;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%);
+  z-index: 200;
+  width: 100%;
+  max-width: 480px;
+  display: flex;
+  background: #ffffff;
+  border-top: 1px solid #e2e8f0;
+  box-shadow: 0 -4px 24px rgba(15, 23, 42, 0.07);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.driver-tab {
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  padding: 10px 4px 9px;
+  color: #94a3b8;
+  text-decoration: none !important;
+  font-size: 0.7rem;
+  font-weight: 600;
+  transition: color 0.15s ease, transform 0.1s ease;
+}
+.driver-tab i {
+  font-size: 1.2rem;
+  transition: transform 0.15s ease;
+}
+.driver-tab:active {
+  transform: scale(0.93);
+}
+.driver-tab.is-active {
+  color: #2563eb;
+}
+.driver-tab.is-active i {
+  transform: translateY(-2px);
+}
+.driver-tab.is-active::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  width: 30px;
+  height: 3px;
+  border-radius: 0 0 4px 4px;
+  background: #2563eb;
+}
+
+/* ---- Compact app bar (sub screens / history) ---- */
+.driver-appbar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 58px;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, #2563eb, #0891b2);
+  color: #ffffff;
+  box-shadow: 0 2px 12px rgba(37, 99, 235, 0.18);
+}
+.driver-appbar strong {
+  font-size: 1.1rem;
+  letter-spacing: 0.3px;
+}
+
+/* ---- History trip card accent ---- */
+.driver-trip-card--history::before {
+  background: #94a3b8;
+}
+.driver-trip-card--history.status-completed::before {
+  background: #16a34a;
+}
+.driver-trip-card--history.status-cancelled::before {
+  background: #dc2626;
+}
+
+/* ---- Profile screen ---- */
+.driver-profile-hero .driver-name {
+  font-size: 1.3rem;
+}
+
+.driver-profile-list {
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #ffffff;
+}
+
+.driver-profile-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  font-weight: 600;
+  text-decoration: none !important;
+  transition: background 0.15s ease;
+}
+.driver-profile-item + .driver-profile-item {
+  border-top: 1px solid #f1f5f9;
+}
+.driver-profile-item:active {
+  background: #f8fafc;
+}
+
+.driver-logout-btn {
+  min-height: 50px;
+  border-radius: 12px;
+  font-weight: 700;
+  color: #dc2626;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+.driver-logout-btn:hover, .driver-logout-btn:active {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+/* ---- Trip detail hero / app bar ---- */
+.driver-detail-hero {
+  background: linear-gradient(135deg, #2563eb, #0891b2);
+  color: #ffffff;
+  padding: 12px 16px 22px;
+  border-bottom-left-radius: 22px;
+  border-bottom-right-radius: 22px;
+  box-shadow: 0 4px 20px rgba(37, 99, 235, 0.18);
+  position: relative;
+  overflow: hidden;
+}
+.driver-detail-hero::after {
+  content: "";
+  position: absolute;
+  width: 160px;
+  height: 160px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 50%;
+  top: -60px;
+  right: -40px;
+  pointer-events: none;
+}
+
+.driver-detail-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.driver-back-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  color: #ffffff !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none !important;
+  transition: background 0.15s ease, transform 0.1s ease;
+}
+.driver-back-btn:active {
+  transform: scale(0.92);
+}
+.driver-back-btn:hover {
+  background: rgba(255, 255, 255, 0.28);
+}
+.driver-back-btn--spacer {
+  background: transparent;
+  pointer-events: none;
+}
+
+.driver-detail-title {
+  font-weight: 700;
+  font-size: 1.05rem;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
+}
+
+.driver-detail-code {
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+}
+
+.driver-detail-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  margin-top: 10px;
+  font-size: 0.8rem;
+  opacity: 0.92;
+}
+.driver-detail-meta i {
+  opacity: 0.85;
+}
+
+/* ---- COD-first collect box ---- */
+.driver-cod-box {
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  border-radius: 10px;
+  padding: 10px;
+}
+
+.driver-cod-title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #92400e;
+  margin-bottom: 6px;
+}
+
+.driver-cod-hint {
+  color: #b45309;
+}
+
+/* ---- Failed vs Returned outcome forms ---- */
+.driver-outcome-group {
+  border-top: 1px dashed #e2e8f0;
+  padding-top: 10px;
+}
+
+.driver-outcome-label {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.driver-outcome-label--fail {
+  color: #dc2626;
+}
+
+.driver-outcome-label--return {
+  color: #b45309;
+}
+
+/* ---- Parcel card app polish ---- */
+.driver-parcel-card {
+  border-radius: 16px;
+}
+.driver-parcel-card .badge {
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-weight: 600;
+}
+
 @media (min-width: 768px) {
   .driver-app {
     border-left: 1px solid #e2e8f0;

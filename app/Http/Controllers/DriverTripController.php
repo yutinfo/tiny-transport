@@ -18,16 +18,34 @@ class DriverTripController extends Controller
 
     public function index()
     {
-        $trips = Trip::query()
-            ->where('driver_user_id', Auth::id())
-            ->whereNotIn('status', [Trip::STATUS_COMPLETED, Trip::STATUS_CANCELLED])
+        $driverId = Auth::id();
+
+        $baseActive = Trip::query()
+            ->where('driver_user_id', $driverId)
+            ->whereNotIn('status', [Trip::STATUS_COMPLETED, Trip::STATUS_CANCELLED]);
+
+        $activeTripIds = (clone $baseActive)->pluck('id');
+
+        $trips = (clone $baseActive)
             ->orderByDesc('trip_date')
             ->orderByDesc('id')
-            ->withCount('tripItems')
+            ->withCount([
+                'tripItems',
+                'tripItems as delivered_count' => fn ($q) => $q->where('delivery_status', TripItem::DELIVERY_STATUS_DELIVERED),
+            ])
             ->paginate(10);
+
+        $summary = [
+            'active_trips' => $activeTripIds->count(),
+            'total_parcels' => TripItem::whereIn('trip_id', $activeTripIds)->count(),
+            'cod_to_collect' => (float) TripItem::whereIn('trip_id', $activeTripIds)
+                ->where('payment_status', '!=', TripItem::PAYMENT_STATUS_PAID)
+                ->sum('cod_amount'),
+        ];
 
         return view('driver.trips.index', [
             'trips' => $trips,
+            'summary' => $summary,
         ]);
     }
 
@@ -36,6 +54,38 @@ class DriverTripController extends Controller
         $this->ensureDriverOwnsTrip($trip);
 
         return $this->renderTrip($trip, 'driver.trips.show');
+    }
+
+    public function history()
+    {
+        $trips = Trip::query()
+            ->where('driver_user_id', Auth::id())
+            ->whereIn('status', [Trip::STATUS_COMPLETED, Trip::STATUS_CANCELLED])
+            ->orderByDesc('trip_date')
+            ->orderByDesc('id')
+            ->withCount('tripItems')
+            ->paginate(10);
+
+        return view('driver.trips.history', [
+            'trips' => $trips,
+        ]);
+    }
+
+    public function profile()
+    {
+        $driverId = Auth::id();
+
+        return view('driver.profile', [
+            'user' => Auth::user(),
+            'activeCount' => Trip::query()
+                ->where('driver_user_id', $driverId)
+                ->whereNotIn('status', [Trip::STATUS_COMPLETED, Trip::STATUS_CANCELLED])
+                ->count(),
+            'historyCount' => Trip::query()
+                ->where('driver_user_id', $driverId)
+                ->whereIn('status', [Trip::STATUS_COMPLETED, Trip::STATUS_CANCELLED])
+                ->count(),
+        ]);
     }
 
     private function ensureDriverOwnsTrip(Trip $trip): void
@@ -76,6 +126,7 @@ class DriverTripController extends Controller
             'deliveryStatusLabels' => TripItem::deliveryStatusLabels(),
             'paymentStatusLabels' => TripItem::paymentStatusLabels(),
             'failedReasons' => $this->failedReasons(),
+            'returnReasons' => $this->returnReasons(),
             'readOnly' => $this->isReadOnly($trip),
         ]);
     }
@@ -102,17 +153,34 @@ class DriverTripController extends Controller
                     TripItem::DELIVERY_STATUS_RETURNED,
                 ]),
             ],
-            'failed_reason' => ['required_if:delivery_status,' . TripItem::DELIVERY_STATUS_FAILED, 'nullable', 'string', 'max:255'],
+            'failed_reason' => [
+                Rule::requiredIf(fn () => in_array($request->delivery_status, [
+                    TripItem::DELIVERY_STATUS_FAILED,
+                    TripItem::DELIVERY_STATUS_RETURNED,
+                ], true)),
+                'nullable', 'string', 'max:255',
+            ],
             'note' => ['nullable', 'string', 'max:1000'],
         ], [
             'required' => ':attribute จำเป็นต้องกรอก',
-            'required_if' => ':attribute จำเป็นต้องกรอกเมื่อจัดส่งไม่สำเร็จ',
             'max' => ':attribute ยาวเกินไป',
         ], [
             'delivery_status' => 'สถานะจัดส่ง',
-            'failed_reason' => 'เหตุผลที่จัดส่งไม่สำเร็จ',
+            'failed_reason' => 'เหตุผล',
             'note' => 'หมายเหตุ',
         ]);
+
+        // COD-first rule: a parcel with an outstanding COD balance cannot be marked
+        // delivered until the money is collected ("เงินไม่มา ของไม่จ่าย").
+        // Failed/returned are unaffected — those hand nothing over.
+        if ($request->delivery_status === TripItem::DELIVERY_STATUS_DELIVERED) {
+            $current = $tripItem->fresh() ?: $tripItem;
+
+            if ((float) $current->cod_amount > 0
+                && ! in_array($current->payment_status, [TripItem::PAYMENT_STATUS_PAID, TripItem::PAYMENT_STATUS_WAIVED], true)) {
+                throw new InvalidArgumentException('ต้องเก็บเงิน COD ให้ครบก่อนจึงจะบันทึกส่งสำเร็จได้');
+            }
+        }
 
         $this->tripService->updateDeliveryStatus(
             $tripItem,
@@ -169,9 +237,8 @@ class DriverTripController extends Controller
             throw new InvalidArgumentException('พัสดุนี้ไม่มียอด COD ให้เก็บ');
         }
 
-        if ($tripItem->delivery_status !== TripItem::DELIVERY_STATUS_DELIVERED) {
-            throw new InvalidArgumentException('เก็บเงิน COD ได้หลังจัดส่งสำเร็จเท่านั้น');
-        }
+        // COD is collected BEFORE handing over the parcel, so payment may be recorded
+        // while the parcel is still in transit (no "must be delivered first" gate).
 
         $this->tripService->updatePaymentCollection(
             $tripItem,
@@ -214,6 +281,18 @@ class DriverTripController extends Controller
             'ที่อยู่ผิด',
             'เลื่อนส่ง',
             'ลูกค้าปฏิเสธรับ',
+            'อื่น ๆ',
+        ];
+    }
+
+    private function returnReasons(): array
+    {
+        return [
+            'ส่งซ้ำหลายรอบ ไม่มีผู้รับ',
+            'ลูกค้าปฏิเสธรับ',
+            'ลูกค้ายกเลิกออเดอร์',
+            'COD ไม่จ่าย',
+            'ที่อยู่ผิด/หาไม่พบ',
             'อื่น ๆ',
         ];
     }

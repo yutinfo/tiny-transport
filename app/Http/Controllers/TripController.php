@@ -163,9 +163,10 @@ class TripController extends Controller
                     ->orWhereNull('delivery_status');
             })
             ->whereDoesntHave('tripItems', function ($query) {
+                // A FAILED item does not block re-assignment (the parcel is re-queued);
+                // RETURNED does block (terminal — sent back to the warehouse).
                 $query->whereNotIn('delivery_status', [
                     TripItem::DELIVERY_STATUS_FAILED,
-                    TripItem::DELIVERY_STATUS_RETURNED,
                 ])->whereHas('trip', function ($tripQuery) {
                     $tripQuery->where('status', '!=', Trip::STATUS_CANCELLED);
                 });

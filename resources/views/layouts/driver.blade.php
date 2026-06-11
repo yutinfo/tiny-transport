@@ -10,9 +10,10 @@
     @stack('page_css')
 </head>
 <body class="driver-shell">
-    <main class="driver-app">
+    <main class="driver-app driver-app--tabbar">
         @yield('content')
     </main>
+    @include('driver.partials._tabbar')
     <script src="{{ mix('js/app.js') }}"></script>
     @stack('page_scripts')
 </body>

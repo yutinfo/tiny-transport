@@ -72,14 +72,16 @@ class TripOperationsFeatureTest extends TestCase
             ])
             ->assertRedirect('/admin/trips/' . $trip->id . '/driver');
 
+        // The trip item keeps 'failed' as this trip's record...
         $this->assertDatabaseHas('trip_items', [
             'id' => $tripItem->id,
             'delivery_status' => TripItem::DELIVERY_STATUS_FAILED,
             'failed_reason' => 'ติดต่อไม่ได้',
         ]);
+        // ...but the parcel is re-queued (order_receive -> waiting) for a future trip.
         $this->assertDatabaseHas('order_receives', [
             'id' => $receiver->id,
-            'delivery_status' => TripItem::DELIVERY_STATUS_FAILED,
+            'delivery_status' => TripItem::DELIVERY_STATUS_WAITING,
         ]);
         $this->assertDatabaseHas('parcel_status_logs', [
             'order_receive_id' => $receiver->id,
@@ -89,29 +91,58 @@ class TripOperationsFeatureTest extends TestCase
         ]);
     }
 
-    public function test_driver_cod_payment_requires_delivered_parcel()
+    public function test_failed_parcel_can_be_reassigned_but_returned_cannot()
+    {
+        $user = $this->createUser();
+        $tripService = app(\App\Services\TripService::class);
+
+        // FAILED parcel: re-queued, can be assigned to a new trip
+        [$failTrip, $failItem, $failReceiver] = $this->createTripWithItem([
+            'status' => Trip::STATUS_IN_TRANSIT,
+        ]);
+        $tripService->updateDeliveryStatus($failItem, TripItem::DELIVERY_STATUS_FAILED, 'note', 'ติดต่อไม่ได้');
+
+        $newTrip = $this->createTrip(['status' => Trip::STATUS_DRAFT]);
+        $reassigned = $tripService->assignParcel($newTrip, $failReceiver->fresh());
+        $this->assertSame(TripItem::DELIVERY_STATUS_WAITING, $reassigned->delivery_status);
+
+        // RETURNED parcel: terminal, cannot be re-assigned
+        [$retTrip, $retItem, $retReceiver] = $this->createTripWithItem([
+            'status' => Trip::STATUS_IN_TRANSIT,
+        ]);
+        $tripService->updateDeliveryStatus($retItem, TripItem::DELIVERY_STATUS_RETURNED, null, 'ลูกค้าปฏิเสธรับ');
+
+        $this->assertDatabaseHas('order_receives', [
+            'id' => $retReceiver->id,
+            'delivery_status' => TripItem::DELIVERY_STATUS_RETURNED,
+        ]);
+
+        $this->expectException(\InvalidArgumentException::class);
+        $tripService->assignParcel($this->createTrip(['status' => Trip::STATUS_DRAFT]), $retReceiver->fresh());
+    }
+
+    public function test_cod_must_be_collected_before_parcel_is_marked_delivered()
     {
         $user = $this->createUser();
         [$trip, $tripItem] = $this->createTripWithItem([
             'status' => Trip::STATUS_IN_TRANSIT,
         ]);
 
+        // 1) cannot mark a COD parcel delivered before the money is collected
         $this->actingAs($user)
             ->from('/admin/trips/' . $trip->id . '/driver')
-            ->post('/admin/driver/trip-items/' . $tripItem->id . '/payment-status', [
-                'payment_status' => TripItem::PAYMENT_STATUS_PAID,
-                'collected_amount' => 125.75,
+            ->post('/admin/driver/trip-items/' . $tripItem->id . '/delivery-status', [
+                'delivery_status' => TripItem::DELIVERY_STATUS_DELIVERED,
+                'note' => 'ส่งสำเร็จ',
             ])
-            ->assertSessionHasErrors('payment_status');
+            ->assertSessionHasErrors('delivery_status');
 
         $this->assertDatabaseHas('trip_items', [
             'id' => $tripItem->id,
-            'payment_status' => TripItem::PAYMENT_STATUS_WAITING,
-            'collected_amount' => 0,
+            'delivery_status' => TripItem::DELIVERY_STATUS_WAITING,
         ]);
 
-        $tripItem->update(['delivery_status' => TripItem::DELIVERY_STATUS_DELIVERED]);
-
+        // 2) collecting COD BEFORE delivery is now allowed (no "must be delivered first")
         $this->actingAs($user)
             ->post('/admin/driver/trip-items/' . $tripItem->id . '/payment-status', [
                 'payment_status' => TripItem::PAYMENT_STATUS_PAID,
@@ -123,6 +154,20 @@ class TripOperationsFeatureTest extends TestCase
             'id' => $tripItem->id,
             'payment_status' => TripItem::PAYMENT_STATUS_PAID,
             'collected_amount' => 125.75,
+        ]);
+
+        // 3) once paid, the parcel can be marked delivered
+        $this->actingAs($user)
+            ->post('/admin/driver/trip-items/' . $tripItem->id . '/delivery-status', [
+                'delivery_status' => TripItem::DELIVERY_STATUS_DELIVERED,
+                'note' => 'ส่งสำเร็จ',
+            ])
+            ->assertRedirect('/admin/trips/' . $trip->id . '/driver');
+
+        $this->assertDatabaseHas('trip_items', [
+            'id' => $tripItem->id,
+            'delivery_status' => TripItem::DELIVERY_STATUS_DELIVERED,
+            'payment_status' => TripItem::PAYMENT_STATUS_PAID,
         ]);
     }
 

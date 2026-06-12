@@ -16,6 +16,9 @@ class ExampleTest extends TestCase
     {
         $response = $this->get('/');
 
-        $response->assertStatus(302);
+        // Guests now land on the public landing page (200); the previous root
+        // redirect (302) only applies to authenticated users — covered in detail
+        // by LandingPageTest.
+        $response->assertStatus(200);
     }
 }

@@ -17,5 +17,9 @@ mix.js('resources/js/app.js', 'public/js')
     .version();
 
 // Public parcel tracking page (Vue 3 SPA). Separate entry, served as a static
-// /js/web.js by resources/views/web/tracking.blade.php.
-mix.js('resources/js/web/app.js', 'public/js/web.js').vue({ version: 3 });
+// /js/tracking.js by resources/views/tracking/index.blade.php.
+mix.js('resources/js/tracking/app.js', 'public/js/tracking.js').vue({ version: 3 });
+
+// Public company landing page (Vue 3 SPA). Separate entry, served as a static
+// /js/landing.js by resources/views/landing/index.blade.php.
+mix.js('resources/js/landing/app.js', 'public/js/landing.js').vue({ version: 3 });

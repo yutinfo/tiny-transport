@@ -1,7 +1,8 @@
 {
     "/js/app.js": "/js/app.js?id=7c29f77e59fc3628c771bf8303858c1f",
-    "/js/web.js": "/js/web.js?id=b754892ebde41568d30d5f4153f90327",
-    "/css/app.css": "/css/app.css?id=c0489289e85442c3e2af873997de3057",
+    "/js/tracking.js": "/js/tracking.js?id=f3e244f04a2e9a1f8f6b5fef250c5843",
+    "/js/landing.js": "/js/landing.js?id=0424a01f64cba084a208bd46f84a1dcc",
+    "/css/app.css": "/css/app.css?id=cc16b445f858e98a74522aad5a4548ce",
     "/plugins/chart.js/Chart.bundle.js": "/plugins/chart.js/Chart.bundle.js?id=cda1cb9319dc70d4cb41ce6c9164740b",
     "/plugins/chart.js/Chart.bundle.min.js": "/plugins/chart.js/Chart.bundle.min.js?id=2ef089205edd1cf2c7953f54ceca8670",
     "/plugins/chart.js/Chart.css": "/plugins/chart.js/Chart.css?id=5d952d15b0234f260dc95c0aa1feef70",

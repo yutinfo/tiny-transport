@@ -1,26 +1,29 @@
 :root {
-    --ta-page-bg: #f5f7fa;
+    --ta-page-bg: #F8FAFC;
     --ta-surface: #ffffff;
-    --ta-surface-soft: #f9fafb;
+    --ta-surface-soft: #F1F5F9;
     --ta-border: #e2e8f0;
     --ta-border-strong: #cbd5e1;
-    --ta-text: #1f2937;
+    --ta-text: #0F172A;
     --ta-muted: #64748b;
     --ta-primary: #2563eb;
     --ta-primary-hover: #1d4ed8;
     --ta-primary-soft: #eff6ff;
     --ta-focus-ring: rgba(37, 99, 235, .25);
-    --ta-info: #0891b2;
+    --ta-info: #0E7490;
+    --ta-accent: #22D3EE;
     --ta-success: #15803d;
     --ta-warning: #b45309;
     --ta-danger: #dc2626;
-    --ta-sidebar: #172033;
-    --ta-sidebar-hover: #22304a;
-    --ta-sidebar-accent: rgba(37, 99, 235, .95);
-    --ta-radius: 8px;
-    --ta-control-radius: 6px;
+    --ta-sidebar: #0A1628;
+    --ta-sidebar-hover: #11233D;
+    --ta-sidebar-accent: linear-gradient(135deg, #1D4ED8, #22D3EE);
+    --ta-gradient: linear-gradient(135deg, #1D4ED8, #22D3EE);
+    --ta-radius: 12px;
+    --ta-control-radius: 10px;
     --ta-shadow-sm: 0 1px 2px rgba(15, 23, 42, .06);
-    --ta-shadow-md: 0 10px 24px rgba(15, 23, 42, .08);
+    --ta-shadow-md: 0 1px 3px rgba(2, 6, 23, .06), 0 12px 32px rgba(2, 6, 23, .07);
+    --ta-display-font: 'Space Grotesk', 'Noto Sans Thai', sans-serif;
 }
 
 html {
@@ -30,7 +33,7 @@ html {
 body {
     background: var(--ta-page-bg);
     color: var(--ta-text);
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans Thai", Tahoma, Arial, sans-serif;
+    font-family: "Noto Sans Thai", -apple-system, BlinkMacSystemFont, "Segoe UI", Tahoma, Arial, sans-serif;
     font-size: 14px;
     line-height: 1.5;
 }
@@ -74,10 +77,12 @@ a:hover {
     min-height: 56px;
     border-bottom: 1px solid var(--ta-border);
     box-shadow: var(--ta-shadow-sm);
+    -webkit-backdrop-filter: saturate(180%) blur(8px);
+    backdrop-filter: saturate(180%) blur(8px);
 }
 
 .navbar-white {
-    background-color: rgba(255, 255, 255, .96);
+    background-color: rgba(255, 255, 255, .85);
 }
 
 .main-header .nav-link {
@@ -98,15 +103,29 @@ a:hover {
 }
 
 .user-header.bg-primary {
-    background: linear-gradient(135deg, var(--ta-primary), var(--ta-info)) !important;
+    background: var(--ta-gradient) !important;
 }
 
 .main-sidebar {
+    position: relative;
     background: var(--ta-sidebar);
     box-shadow: none !important;
 }
 
+.main-sidebar::before {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 160px;
+    background: radial-gradient(80% 100% at 50% -20%, rgba(34, 211, 238, .12), transparent 70%);
+    content: "";
+    pointer-events: none;
+}
+
 .brand-link {
+    position: relative;
+    z-index: 1;
     display: flex;
     align-items: center;
     min-height: 56px;
@@ -123,7 +142,7 @@ a:hover {
     height: 34px;
     margin-right: .7rem;
     border-radius: 10px;
-    background: linear-gradient(145deg, rgba(37, 99, 235, .92), rgba(8, 145, 178, .86));
+    background: var(--ta-gradient);
     color: #fff;
     font-size: .98rem;
     box-shadow: 0 12px 24px rgba(15, 23, 42, .18);
@@ -152,7 +171,11 @@ a:hover {
 }
 
 .brand-link .brand-text {
+    font-family: var(--ta-display-font);
     font-weight: 700 !important;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    font-size: .98rem;
 }
 
 .sidebar {
@@ -192,7 +215,7 @@ a:hover {
 }
 
 .nav-sidebar .nav-link.active {
-    background: var(--ta-sidebar-hover) !important;
+    background: rgba(37, 99, 235, .18) !important;
     color: #ffffff !important;
     box-shadow: 0 10px 24px rgba(15, 23, 42, .18);
 }
@@ -202,7 +225,7 @@ a:hover {
     top: 7px;
     bottom: 7px;
     left: 0;
-    width: 4px;
+    width: 3px;
     border-radius: 999px;
     background: var(--ta-sidebar-accent);
     content: "";
@@ -406,16 +429,43 @@ a:hover {
 .btn-primary,
 .btn.bg-primary,
 .btn.bg-info {
-    border-color: var(--ta-primary) !important;
-    background: var(--ta-primary) !important;
+    border-color: transparent !important;
+    background: var(--ta-gradient) !important;
+    /* paint the gradient under the 1px transparent border too — otherwise the
+       background-image repeats there and draws a dark seam on the right edge */
+    background-origin: border-box !important;
     color: #ffffff !important;
+    font-weight: 600;
+    box-shadow: 0 6px 18px rgba(37, 99, 235, .25);
+    transition: transform .18s cubic-bezier(.16, 1, .3, 1), filter .2s ease, box-shadow .2s ease;
 }
 
 .btn-primary:hover,
 .btn.bg-primary:hover,
 .btn.bg-info:hover {
-    border-color: var(--ta-primary-hover) !important;
-    background: var(--ta-primary-hover) !important;
+    border-color: transparent !important;
+    background: var(--ta-gradient) !important;
+    background-origin: border-box !important;
+    filter: brightness(1.06);
+    box-shadow: 0 10px 24px rgba(34, 211, 238, .28);
+    transform: translateY(-1px);
+}
+
+.btn-primary:active,
+.btn.bg-primary:active,
+.btn.bg-info:active {
+    transform: translateY(0);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, .22);
+}
+
+.btn-primary:disabled,
+.btn-primary.disabled,
+.btn.bg-primary:disabled,
+.btn.bg-info:disabled {
+    filter: none;
+    box-shadow: none;
+    transform: none;
+    opacity: .65;
 }
 
 .btn-success,
@@ -544,6 +594,40 @@ textarea.form-control {
 .select2-container--default.select2-container--open .select2-selection--single {
     border-color: var(--ta-primary);
     box-shadow: 0 0 0 .2rem var(--ta-focus-ring);
+}
+
+/* Plugin leak fixes — scoped under the admin shell (body carries .ta-admin-shell;
+   Select2 dropdowns and SweetAlert2 modals append to body, so they match too). */
+.ta-admin-shell .select2-container--default .select2-results__option--highlighted[aria-selected] {
+    background: var(--ta-primary);
+    color: #ffffff;
+}
+
+.ta-admin-shell .select2-container--default .select2-results__option[aria-selected=true] {
+    background: var(--ta-primary-soft);
+    color: var(--ta-primary);
+}
+
+.ta-admin-shell .page-item.active .page-link {
+    border-color: var(--ta-primary);
+    background: var(--ta-primary);
+    color: #ffffff;
+}
+
+.ta-admin-shell .page-link {
+    color: var(--ta-primary);
+}
+
+.ta-admin-shell .page-link:focus {
+    box-shadow: 0 0 0 .2rem var(--ta-focus-ring);
+}
+
+.ta-admin-shell .swal2-styled.swal2-confirm {
+    background: var(--ta-gradient);
+}
+
+.ta-admin-shell .swal2-styled.swal2-confirm:focus {
+    box-shadow: 0 0 0 3px var(--ta-focus-ring);
 }
 
 .table-responsive,
@@ -851,33 +935,33 @@ textarea.form-control {
 }
 
 .badge-secondary {
-    background: #e2e8f0;
-    color: #334155;
+    background: #F1F5F9;
+    color: #64748B;
 }
 
 .badge-primary {
-    background: var(--ta-primary-soft);
-    color: var(--ta-primary);
+    background: #EFF6FF;
+    color: #2563EB;
 }
 
 .badge-info {
-    background: rgba(8, 145, 178, .12);
-    color: var(--ta-info);
+    background: #ECFEFF;
+    color: #0E7490;
 }
 
 .badge-success {
-    background: rgba(21, 128, 61, .12);
-    color: var(--ta-success);
+    background: #F0FDF4;
+    color: #16A34A;
 }
 
 .badge-warning {
-    background: rgba(180, 83, 9, .12);
-    color: var(--ta-warning);
+    background: #FFFBEB;
+    color: #B45309;
 }
 
 .badge-danger {
-    background: rgba(220, 38, 38, .12);
-    color: var(--ta-danger);
+    background: #FEF2F2;
+    color: #DC2626;
 }
 
 .ta-empty-state {
@@ -1115,6 +1199,7 @@ textarea.form-control {
 .ta-kpi-card__value {
     display: block;
     margin-bottom: .2rem;
+    font-family: var(--ta-display-font);
     font-size: 1.3rem;
     font-weight: 800;
 }
@@ -1422,6 +1507,7 @@ textarea.form-control {
 
     .dashboard-metric__value {
         color: var(--ta-text);
+        font-family: var(--ta-display-font);
         font-size: 1.42rem;
         font-weight: 800;
         line-height: 1.15;
@@ -1469,6 +1555,11 @@ textarea.form-control {
     .dashboard-metric--primary {
         --dashboard-metric-accent: var(--ta-primary);
         --dashboard-metric-bg: rgba(37, 99, 235, .1);
+    }
+
+    .dashboard-metric--primary .dashboard-metric__icon {
+        background: var(--ta-gradient);
+        color: #ffffff;
     }
 
     .dashboard-metric--secondary {

@@ -41539,28 +41539,31 @@ a.text-muted:hover {
 }
 
 :root {
-  --ta-page-bg: #f5f7fa;
+  --ta-page-bg: #F8FAFC;
   --ta-surface: #ffffff;
-  --ta-surface-soft: #f9fafb;
+  --ta-surface-soft: #F1F5F9;
   --ta-border: #e2e8f0;
   --ta-border-strong: #cbd5e1;
-  --ta-text: #1f2937;
+  --ta-text: #0F172A;
   --ta-muted: #64748b;
   --ta-primary: #2563eb;
   --ta-primary-hover: #1d4ed8;
   --ta-primary-soft: #eff6ff;
   --ta-focus-ring: rgba(37, 99, 235, .25);
-  --ta-info: #0891b2;
+  --ta-info: #0E7490;
+  --ta-accent: #22D3EE;
   --ta-success: #15803d;
   --ta-warning: #b45309;
   --ta-danger: #dc2626;
-  --ta-sidebar: #172033;
-  --ta-sidebar-hover: #22304a;
-  --ta-sidebar-accent: rgba(37, 99, 235, .95);
-  --ta-radius: 8px;
-  --ta-control-radius: 6px;
+  --ta-sidebar: #0A1628;
+  --ta-sidebar-hover: #11233D;
+  --ta-sidebar-accent: linear-gradient(135deg, #1D4ED8, #22D3EE);
+  --ta-gradient: linear-gradient(135deg, #1D4ED8, #22D3EE);
+  --ta-radius: 12px;
+  --ta-control-radius: 10px;
   --ta-shadow-sm: 0 1px 2px rgba(15, 23, 42, .06);
-  --ta-shadow-md: 0 10px 24px rgba(15, 23, 42, .08);
+  --ta-shadow-md: 0 1px 3px rgba(2, 6, 23, .06), 0 12px 32px rgba(2, 6, 23, .07);
+  --ta-display-font: "Space Grotesk", "Noto Sans Thai", sans-serif;
 }
 
 html {
@@ -41570,7 +41573,7 @@ html {
 body {
   background: var(--ta-page-bg);
   color: var(--ta-text);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans Thai", Tahoma, Arial, sans-serif;
+  font-family: "Noto Sans Thai", -apple-system, BlinkMacSystemFont, "Segoe UI", Tahoma, Arial, sans-serif;
   font-size: 14px;
   line-height: 1.5;
 }
@@ -41614,10 +41617,11 @@ a:hover {
   min-height: 56px;
   border-bottom: 1px solid var(--ta-border);
   box-shadow: var(--ta-shadow-sm);
+  backdrop-filter: saturate(180%) blur(8px);
 }
 
 .navbar-white {
-  background-color: rgba(255, 255, 255, 0.96);
+  background-color: rgba(255, 255, 255, 0.85);
 }
 
 .main-header .nav-link {
@@ -41638,15 +41642,29 @@ a:hover {
 }
 
 .user-header.bg-primary {
-  background: linear-gradient(135deg, var(--ta-primary), var(--ta-info)) !important;
+  background: var(--ta-gradient) !important;
 }
 
 .main-sidebar {
+  position: relative;
   background: var(--ta-sidebar);
   box-shadow: none !important;
 }
 
+.main-sidebar::before {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 160px;
+  background: radial-gradient(80% 100% at 50% -20%, rgba(34, 211, 238, 0.12), transparent 70%);
+  content: "";
+  pointer-events: none;
+}
+
 .brand-link {
+  position: relative;
+  z-index: 1;
   display: flex;
   align-items: center;
   min-height: 56px;
@@ -41663,7 +41681,7 @@ a:hover {
   height: 34px;
   margin-right: 0.7rem;
   border-radius: 10px;
-  background: linear-gradient(145deg, rgba(37, 99, 235, 0.92), rgba(8, 145, 178, 0.86));
+  background: var(--ta-gradient);
   color: #fff;
   font-size: 0.98rem;
   box-shadow: 0 12px 24px rgba(15, 23, 42, 0.18);
@@ -41692,7 +41710,11 @@ a:hover {
 }
 
 .brand-link .brand-text {
+  font-family: var(--ta-display-font);
   font-weight: 700 !important;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-size: 0.98rem;
 }
 
 .sidebar {
@@ -41732,7 +41754,7 @@ a:hover {
 }
 
 .nav-sidebar .nav-link.active {
-  background: var(--ta-sidebar-hover) !important;
+  background: rgba(37, 99, 235, 0.18) !important;
   color: #ffffff !important;
   box-shadow: 0 10px 24px rgba(15, 23, 42, 0.18);
 }
@@ -41742,7 +41764,7 @@ a:hover {
   top: 7px;
   bottom: 7px;
   left: 0;
-  width: 4px;
+  width: 3px;
   border-radius: 999px;
   background: var(--ta-sidebar-accent);
   content: "";
@@ -41946,16 +41968,43 @@ a:hover {
 .btn-primary,
 .btn.bg-primary,
 .btn.bg-info {
-  border-color: var(--ta-primary) !important;
-  background: var(--ta-primary) !important;
+  border-color: transparent !important;
+  background: var(--ta-gradient) !important;
+  /* paint the gradient under the 1px transparent border too — otherwise the
+     background-image repeats there and draws a dark seam on the right edge */
+  background-origin: border-box !important;
   color: #ffffff !important;
+  font-weight: 600;
+  box-shadow: 0 6px 18px rgba(37, 99, 235, 0.25);
+  transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), filter 0.2s ease, box-shadow 0.2s ease;
 }
 
 .btn-primary:hover,
 .btn.bg-primary:hover,
 .btn.bg-info:hover {
-  border-color: var(--ta-primary-hover) !important;
-  background: var(--ta-primary-hover) !important;
+  border-color: transparent !important;
+  background: var(--ta-gradient) !important;
+  background-origin: border-box !important;
+  filter: brightness(1.06);
+  box-shadow: 0 10px 24px rgba(34, 211, 238, 0.28);
+  transform: translateY(-1px);
+}
+
+.btn-primary:active,
+.btn.bg-primary:active,
+.btn.bg-info:active {
+  transform: translateY(0);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.22);
+}
+
+.btn-primary:disabled,
+.btn-primary.disabled,
+.btn.bg-primary:disabled,
+.btn.bg-info:disabled {
+  filter: none;
+  box-shadow: none;
+  transform: none;
+  opacity: 0.65;
 }
 
 .btn-success,
@@ -42084,6 +42133,40 @@ textarea.form-control {
 .select2-container--default.select2-container--open .select2-selection--single {
   border-color: var(--ta-primary);
   box-shadow: 0 0 0 0.2rem var(--ta-focus-ring);
+}
+
+/* Plugin leak fixes — scoped under the admin shell (body carries .ta-admin-shell;
+   Select2 dropdowns and SweetAlert2 modals append to body, so they match too). */
+.ta-admin-shell .select2-container--default .select2-results__option--highlighted[aria-selected] {
+  background: var(--ta-primary);
+  color: #ffffff;
+}
+
+.ta-admin-shell .select2-container--default .select2-results__option[aria-selected=true] {
+  background: var(--ta-primary-soft);
+  color: var(--ta-primary);
+}
+
+.ta-admin-shell .page-item.active .page-link {
+  border-color: var(--ta-primary);
+  background: var(--ta-primary);
+  color: #ffffff;
+}
+
+.ta-admin-shell .page-link {
+  color: var(--ta-primary);
+}
+
+.ta-admin-shell .page-link:focus {
+  box-shadow: 0 0 0 0.2rem var(--ta-focus-ring);
+}
+
+.ta-admin-shell .swal2-styled.swal2-confirm {
+  background: var(--ta-gradient);
+}
+
+.ta-admin-shell .swal2-styled.swal2-confirm:focus {
+  box-shadow: 0 0 0 3px var(--ta-focus-ring);
 }
 
 .table-responsive,
@@ -42408,33 +42491,33 @@ textarea.form-control {
 }
 
 .badge-secondary {
-  background: #e2e8f0;
-  color: #334155;
+  background: #F1F5F9;
+  color: #64748B;
 }
 
 .badge-primary {
-  background: var(--ta-primary-soft);
-  color: var(--ta-primary);
+  background: #EFF6FF;
+  color: #2563EB;
 }
 
 .badge-info {
-  background: rgba(8, 145, 178, 0.12);
-  color: var(--ta-info);
+  background: #ECFEFF;
+  color: #0E7490;
 }
 
 .badge-success {
-  background: rgba(21, 128, 61, 0.12);
-  color: var(--ta-success);
+  background: #F0FDF4;
+  color: #16A34A;
 }
 
 .badge-warning {
-  background: rgba(180, 83, 9, 0.12);
-  color: var(--ta-warning);
+  background: #FFFBEB;
+  color: #B45309;
 }
 
 .badge-danger {
-  background: rgba(220, 38, 38, 0.12);
-  color: var(--ta-danger);
+  background: #FEF2F2;
+  color: #DC2626;
 }
 
 .ta-empty-state {
@@ -42670,6 +42753,7 @@ textarea.form-control {
 .ta-kpi-card__value {
   display: block;
   margin-bottom: 0.2rem;
+  font-family: var(--ta-display-font);
   font-size: 1.3rem;
   font-weight: 800;
 }
@@ -42950,6 +43034,7 @@ textarea.form-control {
 }
 .dashboard-page .dashboard-metric__value {
   color: var(--ta-text);
+  font-family: var(--ta-display-font);
   font-size: 1.42rem;
   font-weight: 800;
   line-height: 1.15;
@@ -42990,6 +43075,10 @@ textarea.form-control {
 .dashboard-page .dashboard-metric--primary {
   --dashboard-metric-accent: var(--ta-primary);
   --dashboard-metric-bg: rgba(37, 99, 235, .1);
+}
+.dashboard-page .dashboard-metric--primary .dashboard-metric__icon {
+  background: var(--ta-gradient);
+  color: #ffffff;
 }
 .dashboard-page .dashboard-metric--secondary {
   --dashboard-metric-accent: #64748b;
@@ -43243,7 +43332,7 @@ textarea.form-control {
 }
 
 .driver-hero-header {
-  background: linear-gradient(135deg, #2563eb, #0891b2);
+  background: linear-gradient(135deg, #2563eb, #22D3EE);
   color: #ffffff;
   padding: 24px 20px;
   border-bottom-left-radius: 20px;
@@ -43356,7 +43445,7 @@ textarea.form-control {
   background: #94a3b8;
 }
 .driver-trip-card.status-assigned::before {
-  background: #0891b2;
+  background: #22D3EE;
 }
 .driver-trip-card.status-in_transit::before {
   background: #2563eb;
@@ -43628,7 +43717,7 @@ textarea.form-control {
   justify-content: center;
   min-height: 58px;
   padding: 12px 16px;
-  background: linear-gradient(135deg, #2563eb, #0891b2);
+  background: linear-gradient(135deg, #2563eb, #22D3EE);
   color: #ffffff;
   box-shadow: 0 2px 12px rgba(37, 99, 235, 0.18);
 }
@@ -43695,7 +43784,7 @@ textarea.form-control {
 
 /* ---- Trip detail hero / app bar ---- */
 .driver-detail-hero {
-  background: linear-gradient(135deg, #2563eb, #0891b2);
+  background: linear-gradient(135deg, #2563eb, #22D3EE);
   color: #ffffff;
   padding: 12px 16px 22px;
   border-bottom-left-radius: 22px;
@@ -43825,313 +43914,210 @@ textarea.form-control {
     border-right: 1px solid #e2e8f0;
   }
 }
-/* Adminator-inspired Split-Pane Login UI */
+/* Staff / Driver login — tech-blue theme (matches public landing + tracking pages) */
 :root {
-  --auth-bg-gradient: linear-gradient(135deg, #1e40af, #0891b2);
-  --auth-card-bg: #ffffff;
-  --auth-input-bg: #f8fafc;
-  --auth-input-border: #cbd5e1;
-  --auth-input-focus-border: #2563eb;
-  --auth-text-main: #0f172a;
-  --auth-text-muted: #64748b;
-  --auth-primary: #2563eb;
-  --auth-primary-hover: #1d4ed8;
-  --auth-border-radius: 16px;
-  --auth-font-family: "Inter", "Outfit", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --login-navy-950: #060B18;
+  --login-navy-900: #0A1628;
+  --login-blue-700: #1D4ED8;
+  --login-blue-600: #2563EB;
+  --login-cyan-400: #22D3EE;
+  --login-card: #ffffff;
+  --login-ink-900: #0F172A;
+  --login-ink-500: #64748B;
+  --login-line: #E2E8F0;
+  --login-gradient: linear-gradient(135deg, #1D4ED8 0%, #22D3EE 100%);
+  --login-card-radius: 20px;
+  --login-card-shadow: 0 1px 3px rgba(2, 6, 23, .06), 0 12px 32px rgba(2, 6, 23, .07);
+  --login-font: "Noto Sans Thai", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --login-font-display: "Space Grotesk", "Noto Sans Thai", sans-serif;
 }
 
 .auth-shell {
-  font-family: var(--auth-font-family);
-  display: flex;
+  position: relative;
+  font-family: var(--login-font);
   min-height: 100vh;
   width: 100%;
-  background-color: #f8fafc;
   margin: 0;
   padding: 0;
   overflow: hidden;
+  color: var(--login-ink-900);
+  background: radial-gradient(70% 60% at 85% -5%, rgba(34, 211, 238, 0.14), transparent 60%), linear-gradient(180deg, var(--login-navy-950) 0%, var(--login-navy-900) 100%);
+  isolation: isolate;
 }
 
-/* Left Pane: Branding & Info (Desktop only) */
-.auth-aside {
+/* ---- Background layers ---- */
+.auth-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.auth-glow {
+  position: absolute;
+  top: -20%;
+  right: -10%;
+  width: 60vw;
+  height: 60vw;
+  background: radial-gradient(circle, rgba(34, 211, 238, 0.12), transparent 60%);
+  filter: blur(40px);
+}
+
+.auth-grid {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 45%, transparent 90%);
+  mask-image: linear-gradient(180deg, #000 0%, #000 45%, transparent 90%);
+}
+
+/* ---- Layout ---- */
+.auth-main {
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  flex: 1 1 45%;
-  max-width: 50%;
-  background: var(--auth-bg-gradient);
-  color: #ffffff;
-  padding: 3rem 4rem;
-  position: relative;
-  overflow: hidden;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  padding: 2.5rem 1.5rem;
 }
-.auth-aside::after {
-  content: "";
-  position: absolute;
-  width: 300px;
-  height: 300px;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0) 70%);
-  top: -50px;
-  left: -50px;
-  pointer-events: none;
+
+.auth-back {
+  align-self: center;
+  color: #CBD5E1;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: color 0.2s ease;
 }
-.auth-aside::before {
-  content: "";
-  position: absolute;
-  width: 400px;
-  height: 400px;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0) 70%);
-  bottom: -100px;
-  right: -100px;
-  pointer-events: none;
+.auth-back:hover {
+  color: var(--login-cyan-400);
+}
+
+/* ---- Card ---- */
+.auth-card {
+  width: 100%;
+  max-width: 440px;
+  background: var(--login-card);
+  border-radius: var(--login-card-radius);
+  box-shadow: var(--login-card-shadow);
+  padding: 2.5rem;
+  animation: authFadeIn 0.55s ease-out;
 }
 
 .auth-brand {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  z-index: 10;
-}
-.auth-brand .logo-container {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 48px;
-  height: 48px;
-  background: rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(8px);
-  border-radius: 12px;
-  font-size: 1.5rem;
-}
-.auth-brand .logo-container i {
-  animation: truckDrive 1.2s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-}
-.auth-brand .brand-name {
-  font-size: 1.4rem;
-  font-weight: 800;
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.auth-aside-body {
-  margin: auto 0;
-  max-width: 480px;
-  z-index: 10;
-}
-.auth-aside-body .auth-aside-eyebrow {
-  font-size: 0.85rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 2px;
-  color: rgba(255, 255, 255, 0.7);
-  display: inline-block;
-  margin-bottom: 1rem;
-  background: rgba(255, 255, 255, 0.1);
-  padding: 4px 12px;
-  border-radius: 20px;
-  backdrop-filter: blur(4px);
-}
-.auth-aside-body h1 {
-  font-size: 2.25rem;
-  font-weight: 800;
-  line-height: 1.25;
-  margin-bottom: 1.25rem;
-  letter-spacing: -0.5px;
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-}
-.auth-aside-body p {
-  font-size: 1.1rem;
-  line-height: 1.6;
-  color: rgba(255, 255, 255, 0.85);
-  margin-bottom: 2rem;
-}
-
-.auth-quote {
-  background: rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(8px);
-  border-left: 4px solid rgba(255, 255, 255, 0.5);
-  border-radius: 0 var(--auth-border-radius) var(--auth-border-radius) 0;
-  padding: 1.5rem;
-  font-size: 0.95rem;
-  font-style: italic;
-  line-height: 1.5;
-  color: rgba(255, 255, 255, 0.95);
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-}
-.auth-quote .auth-quote-author {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 10px;
-  margin-top: 1rem;
-  font-style: normal;
-  font-weight: 600;
-  font-size: 0.85rem;
-  color: #ffffff;
+  margin-bottom: 1.5rem;
+  -webkit-user-select: none;
+     -moz-user-select: none;
+          user-select: none;
 }
-.auth-quote .auth-quote-author .av {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 50%;
-  font-size: 0.75rem;
+.auth-brand .auth-mark {
+  display: inline-flex;
+  flex-shrink: 0;
+}
+.auth-brand .auth-wordmark {
+  font-family: var(--login-font-display);
   font-weight: 700;
+  font-size: 1.05rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--login-ink-900);
+  white-space: nowrap;
 }
 
-.auth-aside-footer {
-  z-index: 10;
-  font-size: 0.8rem;
-  color: rgba(255, 255, 255, 0.6);
-  display: flex;
-  justify-content: space-between;
-}
-
-/* Right Pane: Login Form */
-.auth-main {
-  flex: 1 1 55%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 2.5rem;
-  background-color: #ffffff;
-  min-height: 100vh;
-  overflow-y: auto;
-}
-
-.auth-card {
-  width: 100%;
-  max-width: 420px;
-  animation: fadeInForm 0.6s ease-out;
-  /* Mobile Brand Header */
-}
-.auth-card .mobile-brand-header {
-  display: none;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  margin-bottom: 2rem;
-}
-.auth-card .mobile-brand-header .mobile-logo {
-  font-size: 2.25rem;
-  color: var(--auth-primary);
-  background: linear-gradient(135deg, rgba(37, 99, 235, 0.1), rgba(8, 145, 178, 0.1));
-  width: 70px;
-  height: 70px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 20px;
-  margin-bottom: 12px;
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.1);
-}
-.auth-card .mobile-brand-header .mobile-logo i {
-  animation: truckDrive 1s ease-out;
-}
-.auth-card .mobile-brand-header h1 {
-  font-size: 1.45rem;
-  font-weight: 800;
-  color: var(--auth-text-main);
-  margin: 0;
-  letter-spacing: 0.5px;
-}
-.auth-card .mobile-brand-header span {
-  font-size: 0.8rem;
-  color: var(--auth-text-muted);
-  margin-top: 4px;
-  font-weight: 500;
-}
-.auth-card h2 {
+.auth-title {
   font-size: 1.75rem;
   font-weight: 800;
-  color: var(--auth-text-main);
-  margin-bottom: 8px;
+  color: var(--login-ink-900);
+  margin: 0 0 8px;
   letter-spacing: -0.5px;
 }
-.auth-card .sub {
+
+.auth-sub {
   font-size: 0.95rem;
-  color: var(--auth-text-muted);
-  margin-bottom: 2rem;
+  color: var(--login-ink-500);
+  margin: 0 0 1.75rem;
   line-height: 1.5;
 }
 
+/* ---- Themed error alert ---- */
+.auth-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 1.5rem;
+  padding: 0.85rem 1rem;
+  background: rgba(220, 38, 38, 0.07);
+  border: 1px solid rgba(220, 38, 38, 0.25);
+  border-radius: 12px;
+  color: #DC2626;
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.45;
+}
+.auth-alert .auth-alert-ico {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #DC2626;
+  color: #fff;
+  font-style: normal;
+  font-weight: 800;
+  font-size: 0.8rem;
+  line-height: 1;
+}
+
+/* ---- Form ---- */
 .auth-form .field {
   margin-bottom: 1.25rem;
 }
-.auth-form .field .field-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 6px;
-}
-.auth-form .field .field-label {
+.auth-form .field-label {
+  display: block;
   font-size: 0.85rem;
   font-weight: 600;
   color: #475569;
-  margin: 0;
+  margin: 0 0 6px;
 }
-.auth-form .field a {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--auth-primary);
-  text-decoration: none;
-  transition: color 0.15s ease;
-}
-.auth-form .field a:hover {
-  color: var(--auth-primary-hover);
-  text-decoration: underline;
-}
-.auth-form .input-icon {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-.auth-form .input-icon .ico {
-  position: absolute;
-  left: 14px;
-  color: var(--auth-text-muted);
-  display: flex;
-  align-items: center;
-  pointer-events: none;
-  font-size: 1rem;
-  transition: color 0.15s ease;
-}
-.auth-form .input-icon .input {
+.auth-form .input {
   width: 100%;
   height: 48px;
-  padding: 10px 14px 10px 42px;
-  background-color: var(--auth-input-bg);
-  border: 1px solid var(--auth-input-border);
-  border-radius: var(--auth-border-radius);
-  font-size: 0.95rem;
-  color: var(--auth-text-main);
-  transition: all 0.2s ease;
-}
-.auth-form .input-icon .input::-moz-placeholder {
-  color: #94a3b8;
-}
-.auth-form .input-icon .input::placeholder {
-  color: #94a3b8;
-}
-.auth-form .input-icon .input:focus {
+  padding: 10px 14px;
   background-color: #ffffff;
-  border-color: var(--auth-input-focus-border);
-  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+  border: 1px solid var(--login-line);
+  border-radius: 12px;
+  font-family: inherit;
+  font-size: 0.95rem;
+  color: var(--login-ink-900);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+.auth-form .input::-moz-placeholder {
+  color: #94a3b8;
+}
+.auth-form .input::placeholder {
+  color: #94a3b8;
+}
+.auth-form .input:focus {
+  background-color: #ffffff;
+  border-color: var(--login-blue-600);
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
   outline: none;
 }
-.auth-form .input-icon .input:focus + .ico {
-  color: var(--auth-primary);
-}
-.auth-form .input-icon .input.is-invalid {
-  border-color: #ef4444;
+.auth-form .input.is-invalid {
+  border-color: #DC2626;
   background-color: #fef2f2;
 }
-.auth-form .input-icon .input.is-invalid:focus {
-  box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.1);
-}
-.auth-form .input-icon .input.is-invalid + .ico {
-  color: #ef4444;
+.auth-form .input.is-invalid:focus {
+  box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.12);
 }
 .auth-form .check {
   display: flex;
@@ -44149,62 +44135,79 @@ textarea.form-control {
 .auth-form .check input[type=checkbox] {
   width: 16px;
   height: 16px;
-  accent-color: var(--auth-primary);
+  accent-color: var(--login-blue-600);
+  cursor: pointer;
+}
+.auth-form .check label {
+  margin: 0;
   cursor: pointer;
 }
 
+/* ---- Submit button (signature gradient + hover lift) ---- */
 .auth-submit {
   width: 100%;
   height: 48px;
-  background-color: var(--auth-primary);
+  background: var(--login-gradient);
   color: #ffffff;
+  font-family: inherit;
   font-weight: 700;
   font-size: 1rem;
   border: none;
-  border-radius: var(--auth-border-radius);
+  border-radius: 12px;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 6px 18px rgba(37, 99, 235, 0.25);
+  transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), filter 0.2s ease, box-shadow 0.2s ease;
 }
-.auth-submit i, .auth-submit svg {
+.auth-submit span {
   transition: transform 0.2s ease;
 }
 .auth-submit:hover {
-  background-color: var(--auth-primary-hover);
-  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.3);
-  transform: translateY(-1px);
+  filter: brightness(1.06);
+  box-shadow: 0 10px 24px rgba(34, 211, 238, 0.28);
+  transform: translateY(-2px);
 }
-.auth-submit:hover i, .auth-submit:hover svg {
+.auth-submit:hover span {
   transform: translateX(4px);
 }
 .auth-submit:active {
   transform: translateY(0);
-  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.2);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.22);
 }
 
-/* Driver helper notice container */
+/* ---- Driver helper notice ---- */
 .driver-helper-card {
-  margin-top: 2rem;
+  margin-top: 1.75rem;
   padding: 1rem 1.25rem;
-  background: #f0fdf4;
-  border: 1px solid #bbf7d0;
-  border-radius: 12px;
+  background: rgba(37, 99, 235, 0.05);
+  border: 1px solid rgba(37, 99, 235, 0.15);
+  border-radius: 14px;
   display: flex;
   align-items: flex-start;
   gap: 10px;
 }
-.driver-helper-card i {
-  color: #16a34a;
-  font-size: 1.1rem;
-  margin-top: 2px;
+.driver-helper-card .auth-helper-ico {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--login-blue-600);
+  color: #fff;
+  font-style: normal;
+  font-weight: 800;
+  font-size: 0.75rem;
+  line-height: 1;
+  margin-top: 1px;
 }
 .driver-helper-card div {
   font-size: 0.85rem;
-  color: #15803d;
+  color: #334155;
   line-height: 1.45;
   font-weight: 500;
 }
@@ -44212,23 +44215,16 @@ textarea.form-control {
   font-weight: 700;
   display: block;
   margin-bottom: 2px;
+  color: var(--login-ink-900);
 }
 
-/* Animations */
-@keyframes truckDrive {
-  0% {
-    transform: translateX(-24px);
-    opacity: 0;
-  }
-  60% {
-    transform: translateX(2px);
-  }
-  100% {
-    transform: translateX(0);
-    opacity: 1;
-  }
+.auth-footer {
+  font-size: 0.8rem;
+  color: rgba(203, 213, 225, 0.7);
 }
-@keyframes fadeInForm {
+
+/* ---- Animation ---- */
+@keyframes authFadeIn {
   from {
     opacity: 0;
     transform: translateY(16px);
@@ -44238,30 +44234,26 @@ textarea.form-control {
     transform: translateY(0);
   }
 }
-/* Mobile Responsiveness */
-@media (max-width: 768px) {
-  .auth-aside {
-    display: none !important;
+@media (prefers-reduced-motion: reduce) {
+  .auth-card {
+    animation: none;
   }
+}
+/* ---- Mobile responsiveness ---- */
+@media (max-width: 480px) {
   .auth-main {
-    flex: 1 1 100%;
-    padding: 1.5rem;
-    align-items: center;
-    background-color: #ffffff;
+    padding: 1.5rem 1rem;
   }
   .auth-card {
     max-width: 100%;
+    padding: 1.75rem 1.5rem;
+    border-radius: 16px;
   }
-  .auth-card .mobile-brand-header {
-    display: flex;
+  .auth-title {
+    font-size: 1.5rem;
   }
-  .auth-card h2, .auth-card .sub {
-    display: none; /* Hide standard headers on mobile and let mobile header handle it */
-  }
-  .auth-submit {
-    height: 52px; /* Even taller on mobile for easy finger tapping */
-  }
-  .auth-form .input-icon .input {
-    height: 52px; /* Taller inputs for drivers on phone screens */
+  .auth-submit,
+.auth-form .input {
+    height: 52px;
   }
 }

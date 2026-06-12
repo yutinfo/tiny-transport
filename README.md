@@ -1,19 +1,29 @@
 # Tiny Transport
 
-ระบบจัดการขนส่งและพัสดุขนาดเล็ก พัฒนาด้วย Laravel 9 พร้อมหน้าแอดมินบน AdminLTE 3 สำหรับสร้างใบสั่งงาน รับพัสดุ จัดรอบจัดส่ง ติดตามสถานะ และสรุปข้อมูล COD/ต้นทุนการจัดส่ง
+ระบบจัดการขนส่งและพัสดุขนาดเล็ก พัฒนาด้วย Laravel 9 — มีหน้าเว็บสาธารณะ (landing + ติดตามพัสดุ) ธีม tech-blue ด้วย Vue 3, หน้าแอดมินบน AdminLTE 3 สำหรับสร้างใบสั่งงาน รับพัสดุ จัดรอบจัดส่ง จัดการคนขับ และสรุปข้อมูล COD/ต้นทุน พร้อม driver portal สำหรับพนักงานขับรถ
 
 ## Features
 
+### Public (ไม่ต้องเข้าสู่ระบบ)
+- **Landing Page** (`/`) - หน้าแรกบริษัท ธีม tech-blue พร้อมช่องค้นหาพัสดุ ลิงก์เข้าสู่ระบบพนักงาน (ผู้ใช้ที่ login อยู่จะถูกส่งไป dashboard ของตนเอง)
+- **Parcel Tracking** (`/tracking`) - ติดตามพัสดุด้วยรหัส รองรับหลายรหัสพร้อมกัน (สูงสุด 10), ไทม์ไลน์สถานะ, แชร์ลิงก์ `?q=CODE1,CODE2` (เส้นทางเดิม `/web` redirect มาที่นี่)
+
+### Admin (`/admin/*`)
 - **Orders & Order Receive** - สร้างใบสั่งงานขนส่ง บันทึกรายการผู้รับหลายรายการต่อออเดอร์ และลบรายการรับงานได้
 - **Contacts** - จัดการข้อมูลผู้ติดต่อ พร้อม API สำหรับค้นหา/แนะนำข้อมูลผู้ติดต่อ
 - **Dashboard** - สรุปยอดพัสดุ รายรับ COD สถานะจัดส่ง สถานะรอบขนส่ง และรายการล่าสุด
 - **Trip Management** - สร้างรอบจัดส่ง มอบหมายพัสดุเข้ารอบ เริ่มรอบ ปิดรอบ ยกเลิกรอบ และแก้ไขข้อมูลรอบ
 - **Driver Management** - ฐานข้อมูลคนขับรถ (master data) ที่ `/admin/drivers`: CRUD ค้นหา/กรอง ผูกบัญชี login (สร้างใหม่/ผูกบัญชีเดิม), รีเซ็ตรหัสผ่าน, ปิด/เปิดใช้งาน (ซิงก์สถานะบัญชี login), สถิติการจัดส่ง และตอนสร้างรอบเลือกคนขับจุดเดียวด้วย Select2 พร้อมสถานะ ว่าง/ไม่ว่าง ของวันนั้น (staff ดูได้, admin จัดการได้)
-- **Driver View** - มุมมองพนักงานขับรถสำหรับอัปเดตสถานะจัดส่งและสถานะชำระเงิน
 - **COD & Cost Tracking** - บันทึกยอดเก็บเงินปลายทาง ยอดที่เก็บได้ ต้นทุนรอบจัดส่ง และสรุปกำไร/ขาดทุน
 - **Parcel Labels & QR** - พิมพ์ใบปะหน้าพัสดุจากออเดอร์หรือรอบจัดส่ง พร้อม QR สำหรับติดตามพัสดุ
-- **Parcel Tracking** - ค้นหา/ดูไทม์ไลน์พัสดุจากรหัสพัสดุ และบันทึกประวัติการแจ้งเตือนลูกค้า
+- **Parcel Tracking (ภายใน)** - ค้นหา/ดูไทม์ไลน์พัสดุจากรหัสพัสดุ และบันทึกประวัติการแจ้งเตือนลูกค้า
+- **Server-side DataTables** - ตารางหลัก (ออเดอร์, รอบจัดส่ง, เลือกพัสดุเข้ารอบ, พัสดุในรอบ, ค้นหาพัสดุ) โหลด/ค้นหา/เรียงผ่าน AJAX endpoint `*/data`
 - **CSV Export** - ส่งออกรายการรอบจัดส่ง รายการพัสดุในรอบ และสรุป COD เป็น CSV
+
+### Driver Portal (`/driver/*`)
+- มุมมอง mobile-first ของพนักงานขับรถ: รายการรอบที่ได้รับมอบหมาย เริ่มรอบ อัปเดตสถานะจัดส่ง/การเก็บเงิน COD และส่งยอดปิดรอบ — เห็นเฉพาะรอบของตนเอง
+
+### อื่นๆ
 - **Location API** - API จังหวัด อำเภอ และตำบล สำหรับฟอร์มที่อยู่
 
 ## Tech Stack
@@ -21,9 +31,12 @@
 - **Backend:** Laravel 9, PHP 8.0.2+
 - **Auth/API:** Laravel Sanctum
 - **Frontend:** Laravel Mix 6, Webpack 5, Sass
-- **UI:** AdminLTE 3.1, Bootstrap 4.6, jQuery 3.6, Font Awesome 4
+- **UI (admin/driver):** AdminLTE 3.1, Bootstrap 4.6, jQuery 3.6
+- **UI (public pages):** Vue 3 SPA แยก bundle ต่อหน้า (`public/js/landing.js`, `public/js/tracking.js`)
 - **Database:** MySQL
-- **Docker:** PHP 8.1 Apache, MySQL 8.0, Node 16 สำหรับ build assets
+- **Docker:** PHP 8.1 Apache, MySQL 8.0
+
+ชื่อแบรนด์ทั้งระบบอ่านจาก `APP_NAME` ใน `.env` (`config('app.name')`) — เปลี่ยนชื่อบริษัทได้ที่จุดเดียว
 
 ## Requirements
 
@@ -42,7 +55,7 @@ cp .env.example .env
 php artisan key:generate
 ```
 
-ตั้งค่า `.env` ให้ตรงกับฐานข้อมูลที่ใช้งาน ตัวอย่างจาก `.env.example` ใช้ MySQL ที่ `127.0.0.1:33306`, database `tiny_transport`
+ตั้งค่า `.env` ให้ตรงกับฐานข้อมูลที่ใช้งาน จากนั้น:
 
 ```bash
 php artisan migrate
@@ -53,12 +66,7 @@ php artisan serve
 
 เปิดแอปที่ `http://localhost:8000`
 
-บัญชีเริ่มต้นจาก seeder:
-
-```text
-username: admin
-password: password
-```
+> **ความปลอดภัย:** seeder สร้างบัญชีและข้อมูลตัวอย่างสำหรับ **พัฒนาเท่านั้น** (ดูได้ใน `database/seeders/`) — ห้ามรัน seeder บนระบบจริง และต้องเปลี่ยนรหัสผ่านทุกบัญชีก่อนใช้งานจริง
 
 ## Docker
 
@@ -70,28 +78,20 @@ docker compose exec app php artisan db:seed
 
 เปิดแอปที่ `http://localhost:8000`
 
-ข้อมูลฐานข้อมูลใน Docker:
-
-```text
-DB_HOST=mysql
-DB_PORT=3306
-DB_DATABASE=tiny_transport
-DB_USERNAME=tatransport
-DB_PASSWORD=tatransport
-```
-
-MySQL ถูก expose มาที่เครื่อง host ที่ port `33306`
+ค่าเชื่อมต่อฐานข้อมูลกำหนดใน `docker-compose.yml` / `.env` (MySQL expose ที่ host port `33306`) — ค่าเริ่มต้นเหมาะกับเครื่อง dev เท่านั้น เปลี่ยนทั้งหมดก่อนนำไป deploy
 
 คำสั่งที่ใช้บ่อย:
 
 ```bash
 docker compose logs app
+docker compose exec -e APP_ENV=testing app php artisan test
 docker compose down
 ```
 
 ## Frontend Assets
 
-ไฟล์ Sass หลักอยู่ที่ `resources/sass/app.scss` และ import UI refinement จาก `resources/sass/_modern-ui.scss`
+- Sass หลัก: `resources/sass/app.scss` (ธีมแอดมินอยู่ใน `_modern-ui.scss`, driver portal ใน `_driver.scss`, หน้า login ใน `_login.scss`)
+- Vue public pages: `resources/js/landing/`, `resources/js/tracking/` — แต่ละหน้าเป็น Mix entry แยกของตัวเอง
 
 ```bash
 npm run dev
@@ -99,16 +99,24 @@ npm run watch
 npm run prod
 ```
 
-หลีกเลี่ยงการแก้ไฟล์ที่ build แล้วใน `public/css`, `public/js`, และ `public/mix-manifest.json` โดยตรง ให้แก้ source แล้ว build ใหม่แทน
+หลีกเลี่ยงการแก้ไฟล์ที่ build แล้ว (`public/css/*`, `public/js/*.js`, `public/mix-manifest.json`) โดยตรง ให้แก้ source แล้ว build ใหม่แทน
 
 ## Main Web Routes
 
-หน้าเว็บหลักใช้ `/login` สำหรับเข้าสู่ระบบ และพื้นที่จัดการอยู่ใต้ prefix `/admin`
+### Public
 
 | Method | Path | Description |
 | --- | --- | --- |
+| GET | `/` | Landing page (guest); ผู้ใช้ที่ login จะ redirect ไป dashboard ตาม role |
+| GET | `/tracking` | หน้าติดตามพัสดุ รองรับ `?q=CODE1,CODE2` |
+| GET | `/web` | เส้นทางเดิม — 301 redirect ไป `/tracking` (คง query string) |
 | GET/POST | `/login` | หน้าเข้าสู่ระบบและ action login |
 | POST | `/logout` | ออกจากระบบ |
+
+### Admin
+
+| Method | Path | Description |
+| --- | --- | --- |
 | GET | `/admin/dashboard` | Dashboard และสถิติการจัดส่ง |
 | GET/POST | `/admin/orders` | รายการออเดอร์และสร้างออเดอร์ |
 | GET | `/admin/orders/{order}/labels` | พิมพ์ label ของออเดอร์ |
@@ -137,26 +145,33 @@ npm run prod
 | GET | `/admin/trips/{trip}/cod/export/csv` | Export สรุป COD |
 | POST | `/admin/trip-items/{tripItem}/delivery-status` | อัปเดตสถานะจัดส่ง |
 | POST | `/admin/trip-items/{tripItem}/payment-status` | อัปเดตสถานะชำระเงิน |
+| GET | `/admin/parcels/search` | ค้นหาพัสดุ |
+| GET | `/admin/parcels/code/{parcelCode}` | เปิดหน้าติดตามจากรหัสพัสดุ |
+| GET | `/admin/parcels/{orderReceive}/tracking` | ไทม์ไลน์ติดตามพัสดุ |
+| POST | `/admin/parcels/{orderReceive}/notifications` | บันทึกประวัติแจ้งเตือนลูกค้า |
+
+ตารางหลักของแอดมิน (ออเดอร์, รอบจัดส่ง, เลือกพัสดุเข้ารอบ, พัสดุในรอบ, ค้นหาพัสดุ) มี endpoint คู่กันรูปแบบ `GET .../data` สำหรับ DataTables server-side
+
+### Driver Portal
+
+| Method | Path | Description |
+| --- | --- | --- |
 | GET | `/driver` | หน้ารายการรอบขนส่งของคนขับ |
 | GET | `/driver/trips/{trip}` | หน้ารายละเอียดรอบขนส่ง mobile สำหรับคนขับ |
 | POST | `/driver/trips/{trip}/start` | คนขับเริ่มรอบขนส่งที่ได้รับมอบหมาย |
 | POST | `/driver/trips/{trip}/submit` | คนขับส่งยอดและเปลี่ยนรอบเป็นรอตรวจสอบ |
 | POST | `/driver/trip-items/{tripItem}/delivery-status` | คนขับอัปเดตสถานะจัดส่งพัสดุของตนเอง |
 | POST | `/driver/trip-items/{tripItem}/payment-status` | คนขับบันทึกยอดเก็บเงิน COD ของตนเอง |
-| GET | `/admin/parcels/search` | ค้นหาพัสดุ |
-| GET | `/admin/parcels/code/{parcelCode}` | เปิดหน้าติดตามจากรหัสพัสดุ |
-| GET | `/admin/parcels/{orderReceive}/tracking` | ไทม์ไลน์ติดตามพัสดุ |
-| POST | `/admin/parcels/{orderReceive}/notifications` | บันทึกประวัติแจ้งเตือนลูกค้า |
 
 Role `driver` ใช้สำหรับบัญชีคนขับรถ หลังเข้าสู่ระบบจะถูกส่งไปที่ `/driver` และเห็นเฉพาะรอบขนส่งที่ `trips.driver_user_id` ตรงกับบัญชีของตนเอง
 
-
 ## API Routes
 
-Location API เปิดให้เรียกได้โดยไม่ต้อง auth:
+API สาธารณะ (ไม่ต้อง auth):
 
 | Method | Path | Description |
 | --- | --- | --- |
+| GET | `/api/track?codes[]=...` | สถานะ + ไทม์ไลน์พัสดุตามรหัส (สูงสุด 10 รหัสต่อครั้ง) |
 | GET | `/api/province` | รายการจังหวัด |
 | GET | `/api/province/{id}` | รายละเอียดจังหวัด |
 | GET | `/api/amphure` | รายการอำเภอ |
@@ -208,16 +223,16 @@ waiting, paid, unpaid, waived
 - `order_receives` รองรับทั้ง `parcel_price` และชื่อเดิม `parcel_pice`; model จะ sync ค่าระหว่างสอง field เพื่อรองรับโค้ดเก่าและโค้ดใหม่
 - Migration ล่าสุดมี index เพิ่มเติมสำหรับ `order_receives` และ `trips` (`driver_id, trip_date`) เพื่อช่วยงานค้นหาและ dashboard
 
-## Validation
-
-ใช้คำสั่งที่ตรงกับประเภทงาน:
+## Testing & Validation
 
 ```bash
-php artisan test
+# ใน Docker
+docker compose exec -e APP_ENV=testing app php artisan test
+docker compose exec app php artisan route:list
+
+# Assets (บน host)
 npm run dev
 npm run prod
-php artisan route:list
-php artisan migrate
 ```
 
 ถ้าเปลี่ยน migration หรือ seed ให้ทดสอบ lifecycle ฐานข้อมูลที่เกี่ยวข้อง เช่น `php artisan migrate:fresh --seed` หรือคำสั่ง Docker เทียบเท่า

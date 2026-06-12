@@ -70,7 +70,7 @@
 
         const themeColors = {
             blue: '#2563eb',
-            teal: '#0891b2',
+            teal: '#22D3EE',
             green: '#16a34a',
             orange: '#d97706',
             red: '#dc2626',

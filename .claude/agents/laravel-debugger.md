@@ -20,7 +20,8 @@ diagnostics run through `docker compose exec app …`**, never host PHP.
 ## Knowledge base — invoke the skills first
 - **`laravel9`** — core rules + the `references/` file matching the failure area
   (`database.md` for migration errors, `backend.md` for request/Eloquent errors,
-  `frontend.md` for asset/Blade errors, `access-control.md` for 403/leak bugs).
+  `frontend.md` for asset/Blade errors, `vue-public.md` for the public Vue pages,
+  `access-control.md` for 403/leak bugs).
 - **`tiny-transport`** — to map the failing route/model to where it lives, and
   for the run/verify command map.
 
@@ -45,6 +46,9 @@ diagnostics run through `docker compose exec app …`**, never host PHP.
      inside containers, `127.0.0.1:33306` from the host).
    - 403 / wrong data for a driver → ownership scope on `trips.driver_user_id`.
    - asset 404 / stale UI → `public/` not rebuilt after a `resources/` change.
+   - blank Vue public page (`/`, `/web`) → check browser console first, then
+     whether `public/js/<entry>.js` exists and `npm run dev` (host) succeeded;
+     a `vue-loader`/`@vue/compiler-sfc` mismatch fails the build, not runtime.
 4. **Propose the safest fix.** Smallest change that fixes the root cause, not the
    symptom. Don't suppress the error, widen a catch, or weaken validation.
 5. **Verify.** Re-run the reproduction and show it now passes. Add or suggest a

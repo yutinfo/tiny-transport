@@ -5,8 +5,9 @@ description: >-
   after writing or modifying code, and whenever the user says "review this",
   "audit code", "is this ok?", "check best practices", or points at PHP/Blade/
   migration files to evaluate (not write). Reviews controllers, Eloquent,
-  requests, migrations, Blade/AdminLTE views, and access control for security,
-  correctness, performance, L9 conventions, and this repo's standards. Reports
+  requests, migrations, Blade/AdminLTE views, Vue 3 SFCs on the public pages,
+  public API endpoints, and access control for security, correctness,
+  performance, L9 conventions, and this repo's standards. Reports
   findings ordered by severity (CRITICAL → HIGH → MEDIUM → LOW → NIT) and only
   prints sections that have findings.
 model: opus
@@ -30,9 +31,12 @@ but you never invent problems that aren't there.
    judging. Pay special attention to `references/access-control.md`.
 
 ## What you check (in priority order)
-1. **Security** — unescaped Blade (`{!! !!}` on user data), mass-assignment of
-   untrusted fields, raw/string-built SQL, missing validation at the boundary,
-   secrets in code/`.env`.
+1. **Security** — unescaped Blade (`{!! !!}` on user data), `v-html` on user
+   data in Vue SFCs, mass-assignment of untrusted fields, raw/string-built SQL,
+   missing validation at the boundary, secrets in code/`.env`. **Public
+   endpoints** (`/api/track`, landing-adjacent): hard input caps present, and
+   the JSON maps whitelisted fields explicitly — a `toArray()`/full-model dump
+   into a public response is HIGH (data exposure).
 2. **Access control (this app's #1 risk)** — driver routes must filter by
    `trips.driver_user_id`; `trip_items` actions must verify ownership; admin
    routes must stay protected from driver users. A missing ownership scope is
@@ -44,7 +48,11 @@ but you never invent problems that aren't there.
    filtered columns, work done per-row that could be a single query.
 5. **Conventions** — route in the wrong file, validation not in a Form Request
    where the pattern exists, Bootstrap 5 syntax in a Bootstrap 4 codebase,
-   hand-edited `public/` assets, Laravel 10/11 idioms.
+   hand-edited `public/` assets, Laravel 10/11 idioms. On public Vue pages
+   (`vue-public.md`): AdminLTE/jQuery leaking in, a second Vue copy/version
+   added, Options API where the codebase uses `<script setup>`, or the brand
+   name hardcoded instead of `config('app.name')`/`window.__BRAND` (the rename
+   contract — flag as MEDIUM).
 6. **Tests** — does the change need a feature test? Is the forbidden-direction
    case (driver blocked from admin) covered?
 

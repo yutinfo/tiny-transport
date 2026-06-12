@@ -4,10 +4,12 @@ Guidance for **Claude Code** working in the Tiny Transport repository.
 
 ## Project snapshot
 - **Tiny Transport** — small transport & parcel-management system: orders,
-  contacts, delivery trips, a driver portal, COD/cost tracking, parcel
-  labels/QR/tracking, and CSV exports.
+  contacts, delivery trips, driver management + driver portal, COD/cost
+  tracking, parcel labels/QR/tracking, CSV exports, and public-facing pages
+  (parcel tracking at `/web`, company landing at `/`).
 - **Stack:** Laravel 9 on PHP 8.0+, Laravel Sanctum, Blade + AdminLTE 3.1 /
-  Bootstrap 4.6 / jQuery 3.6, Laravel Mix 6 (Webpack 5, Sass), MySQL.
+  Bootstrap 4.6 / jQuery 3.6 for admin/driver screens, **Vue 3 SPAs for public
+  pages** (separate Mix entries), Laravel Mix 6 (Webpack 5, Sass), MySQL.
 - **Runs on Docker Compose:** `app` (PHP 8.1 + Apache, http://localhost:8000) and
   `mysql` (8.0, host port `33306`). Seeded login: `admin` / `password`.
 
@@ -15,7 +17,8 @@ Guidance for **Claude Code** working in the Tiny Transport repository.
 1. **All PHP runs inside Docker.** Never host `php` / `php artisan` / `composer`.
    Use `docker compose exec app php artisan …` / `docker compose exec app composer …`.
    Frontend `npm` runs on the **host**.
-2. **Never hand-edit generated assets** (`public/css/app.css`, `public/js/app.js`,
+2. **Never hand-edit generated assets** (`public/css/app.css`, any Mix-built
+   `public/js/*.js` — `app.js`, `web.js`, `landing.js` — and
    `public/mix-manifest.json`) — edit `resources/`, rebuild with `npm run dev`/`prod`.
 3. **Read before you write**; make the smallest correct diff; don't rename
    routes/tables/columns without grepping every usage.

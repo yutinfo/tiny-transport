@@ -1,5 +1,9 @@
 # Frontend — Blade, AdminLTE 3 / Bootstrap 4, Sass, assets
 
+> **Scope:** admin + driver + login screens. **Public-facing Vue 3 pages**
+> (`/web` tracking, the `/` landing) follow a different pattern — see
+> `vue-public.md`. Never load AdminLTE/jQuery on those, never Vue on these.
+
 ## Stack reality
 - Blade templates under `resources/views/`. Admin screens: `resources/views/admin/`.
   Driver screens: `resources/views/driver/` (mobile-first, **not** the admin
@@ -22,6 +26,11 @@
   `_modern-ui.scss`, `_login.scss`, `_driver.scss`.
 - Prefer a shared Sass improvement over page-specific CSS. Put driver-only rules
   in `_driver.scss`, login-only in `_login.scss`.
+- **`ta-form-grid` gotcha:** it is a custom CSS Grid in `_modern-ui.scss`, not
+  real Bootstrap columns. A `col-md-X` / `col-lg-X` class only works inside it
+  if that class is mapped in BOTH the width-reset selector list AND a
+  `grid-column: span X` rule. Using an unmapped class renders the field tiny —
+  add the mapping and rebuild CSS.
 
 ## jQuery
 - Preserve existing jQuery behavior unless the task explicitly changes it. The

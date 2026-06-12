@@ -29,8 +29,9 @@ invoke the **`git-flow`** skill.
    Frontend (`npm`) runs on the **host**. See `tiny-transport` skill for the
    full command map.
 
-3. **Never hand-edit generated assets.** `public/css/app.css`, `public/js/app.js`,
-   and `public/mix-manifest.json` are build output. Edit `resources/sass/*` and
+3. **Never hand-edit generated assets.** `public/css/app.css`, every Mix-built
+   `public/js/*.js` (`app.js`, `web.js`, `landing.js`, …), and
+   `public/mix-manifest.json` are build output. Edit `resources/sass/*` and
    `resources/js/*`, then rebuild with `npm run dev` / `npm run prod` on the host.
 
 4. **Read before you write.** Open the real controller/model/migration/Blade and
@@ -53,6 +54,7 @@ invoke the **`git-flow`** skill.
 | Controllers, Eloquent, Form Requests, services, the request lifecycle | `references/backend.md` |
 | Migrations, columns, indexes, seeders, rollback safety  | `references/database.md`       |
 | Blade, AdminLTE 3 / Bootstrap 4 markup, Sass, jQuery, the asset pipeline | `references/frontend.md` |
+| Public Vue 3 pages (`/web`, the `/` landing), standalone shells, brand contract, public APIs | `references/vue-public.md` |
 | Feature tests, RefreshDatabase, what/how to assert      | `references/testing.md`        |
 | Auth, roles, driver-vs-admin access, ownership guards   | `references/access-control.md` |
 

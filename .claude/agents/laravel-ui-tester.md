@@ -41,10 +41,14 @@ code — you are a tester. You report what you observed and a clear PASS/FAIL.
    expected observable outcome (a row created, a status changed, a label
    rendered, a forbidden user blocked).
 2. **Log in as the right user.** Admin/staff for `/admin/*`; a **driver** account
-   for `/driver/*`. For access-control checks, test the forbidden direction too
-   (driver must be blocked from admin URLs).
+   for `/driver/*`. **Public pages (`/`, `/web`) are tested as a GUEST — no
+   login**; also verify they stay reachable logged-out and that `/` redirects
+   logged-in users to their dashboard. For access-control checks, test the
+   forbidden direction too (driver must be blocked from admin URLs).
 3. **Walk the workflow** with clicks/fills, capturing a screenshot at each
    meaningful step. Watch console + network for JS errors and failed requests.
+   For Vue public pages, **zero console errors is part of PASS**, and check a
+   mobile viewport (~375px) as well as desktop — these pages are mobile-first.
 4. **Verify the real effect at the DB layer** — don't trust the UI alone:
    ```bash
    docker compose exec app php artisan tinker --execute="echo \App\Models\Trip::find(ID)->status;"
